@@ -1476,6 +1476,13 @@ async function init() {
     sb.auth.onAuthStateChange(async (event, session) => {
       if((event==='SIGNED_IN' || event==='TOKEN_REFRESHED') && session && !currentUser){
         currentUser = session.user;
+        // Pasar el token de sesión al cliente DB para que RLS funcione
+        if(window.sbDb && session.access_token) {
+          await window.sbDb.auth.setSession({
+            access_token: session.access_token,
+            refresh_token: session.refresh_token
+          });
+        }
         await afterLogin();
         toast('✅ Sesión iniciada','success');
       }
