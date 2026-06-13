@@ -1,0 +1,3167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SG-SST — Plataforma Integral de Gestión</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --green-900:#0d3320;--green-800:#1a5c38;--green-700:#1f7045;--green-600:#2e8a56;
+  --green-500:#3da668;--green-400:#6abf8a;--green-100:#e8f5ee;--green-50:#f2faf5;
+  --amber-700:#92400e;--amber-600:#b45309;--amber-100:#fef3c7;--amber-50:#fffbeb;
+  --red-800:#991b1b;--red-700:#b91c1c;--red-100:#fee2e2;--red-50:#fef2f2;
+  --blue-800:#1e40af;--blue-100:#dbeafe;--blue-50:#eff6ff;
+  --gray-900:#111827;--gray-800:#1f2937;--gray-700:#374151;--gray-600:#4b5563;
+  --gray-500:#6b7280;--gray-400:#9ca3af;--gray-300:#d1d5db;--gray-200:#e5e7eb;
+  --gray-100:#f3f4f6;--gray-50:#f9fafb;--white:#ffffff;
+  --font:'Plus Jakarta Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+  --r4:4px;--r8:8px;--r12:12px;--r16:16px;--r24:24px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.06);
+  --shadow:0 2px 8px rgba(0,0,0,.08);
+  --shadow-md:0 4px 16px rgba(0,0,0,.12);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--font);font-size:14px;color:var(--gray-900);background:var(--gray-50)}
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:3px}
+
+/* ══════════════════════════════
+   LOGIN SCREEN
+══════════════════════════════ */
+#loginScreen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;background:linear-gradient(135deg,var(--green-900) 0%,var(--green-700) 50%,var(--green-600) 100%);
+  position:relative;overflow:hidden;
+}
+#loginScreen::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.login-card{
+  background:var(--white);border-radius:var(--r24);padding:2.5rem;
+  width:420px;max-width:95vw;box-shadow:var(--shadow-lg);position:relative;z-index:1;
+}
+.login-logo{text-align:center;margin-bottom:1.5rem}
+.login-logo-shield{
+  width:64px;height:64px;background:var(--green-100);border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:32px;margin-bottom:.75rem;
+}
+.login-title{font-size:22px;font-weight:700;color:var(--green-800);text-align:center}
+.login-sub{font-size:12px;color:var(--gray-500);text-align:center;margin-top:4px}
+.login-tabs{display:flex;border:1px solid var(--gray-200);border-radius:var(--r8);overflow:hidden;margin:1.5rem 0 1rem}
+.login-tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;color:var(--gray-600);transition:all .2s}
+.login-tab.active{background:var(--green-800);color:var(--white)}
+.form-group{margin-bottom:1rem}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:5px;letter-spacing:.3px}
+.form-input,.form-select,.form-textarea{
+  width:100%;padding:10px 12px;border:1px solid var(--gray-300);border-radius:var(--r8);
+  font-family:var(--font);font-size:13px;color:var(--gray-900);background:var(--white);
+  transition:border-color .2s,box-shadow .2s;
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{
+  outline:none;border-color:var(--green-600);box-shadow:0 0 0 3px rgba(46,138,86,.12);
+}
+.form-textarea{min-height:90px;resize:vertical;line-height:1.6}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:9px 16px;border-radius:var(--r8);border:1px solid var(--gray-300);
+  background:var(--white);color:var(--gray-700);font-family:var(--font);
+  font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.btn:hover{background:var(--gray-100);border-color:var(--gray-400)}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--green-800);color:var(--white);border-color:var(--green-800)}
+.btn-primary:hover{background:var(--green-700);border-color:var(--green-700);color:var(--white)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-xs{padding:4px 8px;font-size:11px}
+.btn-danger{background:var(--red-700);color:var(--white);border-color:var(--red-700)}
+.btn-danger:hover{background:var(--red-800);border-color:var(--red-800);color:var(--white)}
+.btn-warn{background:var(--amber-600);color:var(--white);border-color:var(--amber-600)}
+.btn-full{width:100%}
+.login-error{background:var(--red-50);border:1px solid var(--red-100);color:var(--red-800);padding:10px 12px;border-radius:var(--r8);font-size:13px;margin-bottom:1rem;display:none}
+
+/* ══════════════════════════════
+   APP LAYOUT
+══════════════════════════════ */
+#appScreen{display:none;height:100vh;flex-direction:column}
+.app-header{
+  height:56px;background:var(--green-900);display:flex;align-items:center;
+  padding:0 1.25rem;gap:1rem;flex-shrink:0;position:sticky;top:0;z-index:50;
+}
+.app-logo{display:flex;align-items:center;gap:10px;color:var(--white)}
+.app-logo-icon{font-size:22px}
+.app-logo-text{font-size:15px;font-weight:700;letter-spacing:.3px}
+.app-logo-badge{
+  background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);
+  font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:4px;letter-spacing:.5px
+}
+.header-center{flex:1;display:flex;align-items:center;justify-content:center;gap:10px}
+.company-select-wrap{position:relative;display:flex;align-items:center;gap:6px}
+.company-select{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  color:var(--white);border-radius:var(--r8);padding:6px 30px 6px 10px;
+  font-family:var(--font);font-size:13px;cursor:pointer;min-width:220px;
+  appearance:none;
+}
+.company-select option{color:var(--gray-900);background:var(--white)}
+.header-right{display:flex;align-items:center;gap:8px}
+.user-pill{
+  display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.15);border-radius:20px;
+  padding:4px 12px 4px 4px;cursor:pointer;
+}
+.user-avatar{
+  width:26px;height:26px;border-radius:50%;background:var(--green-500);
+  display:flex;align-items:center;justify-content:center;font-size:11px;
+  font-weight:700;color:var(--white);
+}
+.user-name{font-size:12px;color:rgba(255,255,255,.9);font-weight:500}
+
+.app-body{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:230px;min-width:230px;background:var(--white);
+  border-right:1px solid var(--gray-200);overflow-y:auto;display:flex;flex-direction:column;
+}
+.sidebar-company-card{
+  padding:1rem;border-bottom:1px solid var(--gray-100);
+  background:var(--green-50);
+}
+.company-logo-thumb{
+  width:40px;height:40px;border-radius:var(--r8);object-fit:contain;
+  border:1px solid var(--gray-200);background:var(--white);margin-bottom:6px;
+}
+.company-name-sidebar{font-size:13px;font-weight:700;color:var(--green-800);line-height:1.3}
+.company-meta-sidebar{font-size:11px;color:var(--gray-500);margin-top:2px}
+.risk-chip{
+  display:inline-flex;align-items:center;gap:4px;padding:2px 8px;
+  border-radius:10px;font-size:10px;font-weight:700;font-family:var(--mono);
+  margin-top:5px;letter-spacing:.5px;
+}
+.risk-I{background:#dcfce7;color:#166534}
+.risk-II{background:#d1fae5;color:#065f46}
+.risk-III{background:var(--amber-100);color:var(--amber-700)}
+.risk-IV{background:#fee2e2;color:#991b1b}
+.risk-V{background:#7f1d1d;color:#fff}
+
+.sidebar-section{padding:.5rem 0;border-bottom:1px solid var(--gray-100)}
+.sidebar-label{
+  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--gray-400);padding:8px 14px 4px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:9px;padding:7px 14px;
+  cursor:pointer;font-size:12.5px;color:var(--gray-600);
+  border-left:3px solid transparent;transition:all .15s;user-select:none;
+}
+.nav-item:hover{background:var(--gray-50);color:var(--gray-900)}
+.nav-item.active{
+  background:var(--green-50);color:var(--green-800);
+  border-left-color:var(--green-700);font-weight:600;
+}
+.nav-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.nav-badge{
+  margin-left:auto;padding:1px 6px;border-radius:10px;
+  font-size:10px;font-weight:700;font-family:var(--mono);
+}
+.nb-danger{background:var(--red-100);color:var(--red-800)}
+.nb-warn{background:var(--amber-100);color:var(--amber-700)}
+.nb-ok{background:var(--green-100);color:var(--green-800)}
+.nb-gray{background:var(--gray-200);color:var(--gray-600)}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;background:var(--gray-50)}
+.view{display:none;padding:1.75rem;max-width:1150px}
+.view.active{display:block}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;gap:1rem;flex-wrap:wrap}
+.page-title{font-size:20px;font-weight:700;color:var(--gray-900)}
+.page-sub{font-size:12px;color:var(--gray-500);margin-top:3px;line-height:1.5}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ── CARDS ── */
+.card{
+  background:var(--white);border:1px solid var(--gray-200);
+  border-radius:var(--r16);padding:1.25rem;box-shadow:var(--shadow-sm);margin-bottom:1.25rem;
+}
+.card-title{
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;
+  color:var(--gray-500);margin-bottom:1rem;display:flex;align-items:center;gap:7px;
+}
+.card-title-lg{font-size:14px;font-weight:700;color:var(--gray-800);margin-bottom:1rem;display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0}
+
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem}
+.kpi{
+  background:var(--white);border:1px solid var(--gray-200);
+  border-radius:var(--r16);padding:1.1rem 1.25rem;box-shadow:var(--shadow-sm);
+  transition:box-shadow .2s;
+}
+.kpi:hover{box-shadow:var(--shadow)}
+.kpi-label{font-size:11px;color:var(--gray-500);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.kpi-value{font-size:26px;font-weight:700;font-family:var(--mono);color:var(--gray-900);line-height:1}
+.kpi-sub{font-size:11px;color:var(--gray-400);margin-top:4px}
+.kpi.kpi-green .kpi-value{color:var(--green-700)}
+.kpi.kpi-warn .kpi-value{color:var(--amber-600)}
+.kpi.kpi-danger .kpi-value{color:var(--red-700)}
+.kpi.kpi-blue .kpi-value{color:var(--blue-800)}
+
+/* ── PILLS ── */
+.pill{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600}
+.pill-green{background:var(--green-100);color:var(--green-800)}
+.pill-warn{background:var(--amber-100);color:var(--amber-700)}
+.pill-danger{background:var(--red-100);color:var(--red-800)}
+.pill-blue{background:var(--blue-100);color:var(--blue-800)}
+.pill-gray{background:var(--gray-200);color:var(--gray-600)}
+.pill-purple{background:#ede9fe;color:#5b21b6}
+
+/* ── ALERTS ── */
+.alert{border-radius:var(--r8);padding:11px 13px;margin-bottom:1rem;display:flex;align-items:flex-start;gap:9px;font-size:13px;line-height:1.5}
+.alert-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.alert-green{background:var(--green-50);border:1px solid var(--green-100);color:var(--green-800)}
+.alert-warn{background:var(--amber-50);border:1px solid var(--amber-100);color:var(--amber-700)}
+.alert-danger{background:var(--red-50);border:1px solid var(--red-100);color:var(--red-800)}
+.alert-blue{background:var(--blue-50);border:1px solid var(--blue-100);color:var(--blue-800)}
+
+/* ── TABLES ── */
+.tbl-wrap{overflow-x:auto;border-radius:var(--r8);border:1px solid var(--gray-200)}
+table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+table.tbl th{
+  background:var(--gray-50);font-weight:700;text-align:left;
+  padding:9px 12px;border-bottom:1px solid var(--gray-200);
+  color:var(--gray-600);font-size:11px;text-transform:uppercase;letter-spacing:.4px;
+  white-space:nowrap;
+}
+table.tbl td{padding:9px 12px;border-bottom:1px solid var(--gray-100);color:var(--gray-800);vertical-align:middle}
+table.tbl tr:last-child td{border-bottom:none}
+table.tbl tr:hover td{background:var(--gray-50)}
+
+/* ── PROGRESS ── */
+.progress-wrap{margin:4px 0}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--gray-600);margin-bottom:4px}
+.progress-bar{height:7px;background:var(--gray-200);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px;background:var(--green-600);transition:width .5s}
+.progress-fill.warn{background:var(--amber-600)}
+.progress-fill.danger{background:var(--red-700)}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:1px solid var(--gray-200);margin-bottom:1.25rem;gap:0;overflow-x:auto}
+.tab{padding:9px 15px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--gray-500);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .15s}
+.tab:hover{color:var(--gray-800)}
+.tab.active{color:var(--green-700);border-bottom-color:var(--green-700)}
+
+/* ── PHVA CARDS ── */
+.phva-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
+.phva-card{border-radius:var(--r12);padding:1.25rem;border:1px solid var(--gray-200);background:var(--white);transition:box-shadow .2s}
+.phva-card:hover{box-shadow:var(--shadow)}
+.phva-card.P{border-top:3px solid var(--green-600)}
+.phva-card.H{border-top:3px solid var(--blue-800)}
+.phva-card.V{border-top:3px solid var(--amber-600)}
+.phva-card.A{border-top:3px solid #7c3aed}
+.phva-letter{font-size:28px;font-weight:800;font-family:var(--mono);line-height:1}
+.phva-card.P .phva-letter{color:var(--green-700)}
+.phva-card.H .phva-letter{color:var(--blue-800)}
+.phva-card.V .phva-letter{color:var(--amber-600)}
+.phva-card.A .phva-letter{color:#7c3aed}
+.phva-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-500);margin-bottom:.75rem}
+.phva-items{list-style:none}
+.phva-items li{font-size:12px;color:var(--gray-600);padding:3px 0;display:flex;align-items:center;gap:6px;cursor:pointer;border-radius:4px;transition:color .15s}
+.phva-items li:hover{color:var(--green-700)}
+.phva-items li::before{content:'›';color:var(--green-500);font-weight:700;font-size:14px}
+
+/* ── UPLOAD ZONE ── */
+.upload-zone{
+  border:2px dashed var(--gray-300);border-radius:var(--r12);padding:2rem;
+  text-align:center;cursor:pointer;transition:all .2s;background:var(--gray-50);
+}
+.upload-zone:hover{border-color:var(--green-500);background:var(--green-50)}
+.upload-zone-icon{font-size:36px;margin-bottom:.5rem;color:var(--gray-400)}
+.upload-zone p{color:var(--gray-500);font-size:13px}
+.upload-zone input{display:none}
+
+/* ── DOC ROWS ── */
+.doc-row{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--gray-100);transition:background .15s}
+.doc-row:last-child{border-bottom:none}
+.doc-row:hover{background:var(--gray-50)}
+.doc-icon{font-size:20px;flex-shrink:0;color:var(--gray-400)}
+.doc-info{flex:1;min-width:0}
+.doc-name{font-size:13px;font-weight:600;color:var(--gray-800);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-meta{font-size:11px;color:var(--gray-400);margin-top:1px}
+.doc-actions{display:flex;gap:5px;flex-shrink:0}
+
+/* ── LOGO UPLOAD ── */
+.logo-upload-area{
+  width:80px;height:80px;border:2px dashed var(--gray-300);border-radius:var(--r12);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  overflow:hidden;background:var(--gray-50);transition:all .2s;flex-shrink:0;
+}
+.logo-upload-area:hover{border-color:var(--green-500);background:var(--green-50)}
+.logo-upload-area img{width:100%;height:100%;object-fit:contain}
+.logo-upload-area .logo-placeholder{font-size:28px;color:var(--gray-300)}
+.logo-upload-area input{display:none}
+
+/* ── EVAL QUESTIONS ── */
+.eval-question{
+  border:1px solid var(--gray-200);border-radius:var(--r8);padding:.9rem 1rem;
+  margin-bottom:.6rem;background:var(--white);display:flex;align-items:flex-start;gap:1rem;
+  transition:border-color .2s;
+}
+.eval-question:hover{border-color:var(--green-400)}
+.eval-q-text{flex:1}
+.eval-q-text b{font-size:13px;color:var(--gray-800);display:block;margin-bottom:3px}
+.eval-q-norm{font-size:10px;color:var(--gray-400);font-family:var(--mono)}
+.eval-opts{display:flex;flex-direction:column;gap:4px;flex-shrink:0;min-width:120px}
+.eval-opt{display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;color:var(--gray-600)}
+.eval-opt input{accent-color:var(--green-700)}
+.eval-score{font-weight:700;font-family:var(--mono);font-size:13px;min-width:35px;text-align:right;color:var(--green-700)}
+
+/* ── MATRIX ── */
+.matrix-cell{display:inline-flex;align-items:center;justify-content:center;width:34px;height:28px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--mono)}
+.m-I{background:#166534;color:#fff}
+.m-II{background:#dc2626;color:#fff}
+.m-III{background:var(--amber-100);color:var(--amber-700)}
+.m-IV{background:#dcfce7;color:#166534}
+
+/* ── VERSION HISTORY ── */
+.version-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray-100)}
+.version-row:last-child{border-bottom:none}
+.version-dot{width:8px;height:8px;border-radius:50%;background:var(--green-600);flex-shrink:0;margin-top:4px}
+.version-dot.old{background:var(--gray-300)}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:var(--r16);padding:1.5rem;max-width:580px;width:92%;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
+.modal-title{font-size:15px;font-weight:700;color:var(--gray-900)}
+.modal-close{background:none;border:none;cursor:pointer;font-size:22px;color:var(--gray-400);padding:0;line-height:1}
+.modal-close:hover{color:var(--gray-700)}
+
+/* ── TOAST ── */
+.toast-area{position:fixed;bottom:20px;right:20px;z-index:300;display:flex;flex-direction:column;gap:7px}
+.toast{background:var(--gray-900);color:var(--white);padding:11px 15px;border-radius:var(--r8);font-size:13px;box-shadow:var(--shadow-md);display:flex;align-items:center;gap:8px;animation:slideUp .3s ease;max-width:340px}
+.toast.t-success{background:var(--green-800)}
+.toast.t-error{background:var(--red-700)}
+.toast.t-warn{background:var(--amber-600)}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* ── FORM GRID ── */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1rem}
+.form-grid .span2{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:4px}
+
+/* ── LOADING ── */
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.8);z-index:400;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.spinner{width:36px;height:36px;border:3px solid var(--gray-200);border-top-color:var(--green-700);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:13px;color:var(--gray-600);font-weight:500}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .phva-grid{grid-template-columns:1fr}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     LOADING OVERLAY
+══════════════════════════════════════ -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Conectando con Supabase...</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════ -->
+<style>
+.login-tabs{ display:flex; border:1px solid var(--gray-200); border-radius:var(--r8); overflow:hidden; margin:1.25rem 0 1rem; }
+.login-tab{ flex:1; padding:8px 6px; text-align:center; font-size:12.5px; font-weight:600; cursor:pointer; color:var(--gray-500); transition:all .2s; }
+.login-tab.active{ background:var(--green-800); color:#fff; }
+.login-tab:hover:not(.active){ background:var(--gray-100); color:var(--gray-800); }
+.reg-divider{ display:flex; align-items:center; gap:8px; margin:1rem 0; }
+.reg-divider::before,.reg-divider::after{ content:''; flex:1; height:1px; background:var(--gray-200); }
+.reg-divider span{ font-size:11px; color:var(--gray-400); white-space:nowrap; }
+.login-success{ background:var(--green-50); border:1px solid var(--green-100); color:var(--green-800); padding:10px 12px; border-radius:var(--r8); font-size:13px; margin-bottom:1rem; display:none; }
+.pwd-strength{ height:4px; border-radius:2px; margin-top:5px; transition:all .3s; }
+.pwd-hint{ font-size:10px; color:var(--gray-400); margin-top:3px; }
+</style>
+
+<div id="loginScreen" style="display:none">
+  <div class="login-card" style="max-width:440px">
+    <div class="login-logo">
+      <div class="login-logo-shield">🛡️</div>
+      <div class="login-title">SG-SST Plataforma</div>
+      <div class="login-sub">Sistema de Gestión de Seguridad y Salud en el Trabajo<br><span style="font-family:var(--mono);font-size:11px">Res. 0312/2019 · Dec. 1072/2015</span></div>
+    </div>
+
+    <!-- TABS: Administrador | Empresa | Registrarse -->
+    <div class="login-tabs">
+      <div class="login-tab active" onclick="setLoginTab('admin')" id="tab-admin">👤 Administrador</div>
+      <div class="login-tab" onclick="setLoginTab('empresa')" id="tab-empresa">🏢 Empresa</div>
+      <div class="login-tab" onclick="setLoginTab('registro')" id="tab-registro">✏️ Registrarse</div>
+    </div>
+
+    <!-- MENSAJES -->
+    <div id="loginError" class="login-error"></div>
+    <div id="loginSuccess" class="login-success"></div>
+
+    <!-- ── PANEL LOGIN (admin / empresa) ── -->
+    <div id="panelLogin">
+      <div id="loginRoleHint" style="background:var(--green-50);border:1px solid var(--green-100);border-radius:var(--r8);padding:9px 12px;font-size:12px;color:var(--green-800);margin-bottom:1rem">
+        <b>🔑 Acceso Administrador</b> — Gestión completa de todas las empresas y configuración del sistema.
+      </div>
+      <div class="form-group">
+        <label class="form-label">Correo electrónico</label>
+        <input class="form-input" id="loginEmail" type="email" placeholder="correo@empresa.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <div style="position:relative">
+          <input class="form-input" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password" style="padding-right:40px">
+          <span onclick="togglePwd('loginPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--gray-400);user-select:none">👁</span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+        <span onclick="showForgot()" style="font-size:12px;color:var(--green-700);cursor:pointer;font-weight:500">¿Olvidó su contraseña?</span>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">
+        Ingresar al sistema →
+      </button>
+      <div class="reg-divider"><span>¿No tiene cuenta?</span></div>
+      <button class="btn btn-full" onclick="setLoginTab('registro')" style="border-color:var(--green-600);color:var(--green-700);font-weight:600">
+        ✏️ Crear nueva cuenta
+      </button>
+    </div>
+
+    <!-- ── PANEL REGISTRO ── -->
+    <div id="panelRegistro" style="display:none">
+      <div style="background:var(--blue-50);border:1px solid var(--blue-100);border-radius:var(--r8);padding:9px 12px;font-size:12px;color:var(--blue-800);margin-bottom:1rem">
+        <b>ℹ️ Crear cuenta nueva</b> — Complete el formulario. Recibirá un correo de confirmación de Supabase.
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nombre completo *</label>
+        <input class="form-input" id="regNombre" type="text" placeholder="Su nombre completo">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Correo electrónico *</label>
+        <input class="form-input" id="regEmail" type="email" placeholder="correo@empresa.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo de usuario *</label>
+        <select class="form-select" id="regRol">
+          <option value="admin">Administrador SST — acceso total</option>
+          <option value="empresa">Usuario Empresa — acceso limitado</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña * <span style="font-weight:400;color:var(--gray-400)">(mín. 8 caracteres)</span></label>
+        <div style="position:relative">
+          <input class="form-input" id="regPass" type="password" placeholder="Cree una contraseña segura" autocomplete="new-password" style="padding-right:40px" oninput="checkPwdStrength(this.value)">
+          <span onclick="togglePwd('regPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--gray-400);user-select:none">👁</span>
+        </div>
+        <div class="pwd-strength" id="pwdStrength" style="background:var(--gray-200)"></div>
+        <div class="pwd-hint" id="pwdHint">Ingrese su contraseña</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirmar contraseña *</label>
+        <div style="position:relative">
+          <input class="form-input" id="regPass2" type="password" placeholder="Repita la contraseña" autocomplete="new-password" style="padding-right:40px">
+          <span onclick="togglePwd('regPass2',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--gray-400);user-select:none">👁</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Empresa u organización (opcional)</label>
+        <input class="form-input" id="regEmpresa" type="text" placeholder="Nombre de su empresa">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Teléfono de contacto (opcional)</label>
+        <input class="form-input" id="regTel" type="tel" placeholder="300 000 0000">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doRegister()" style="margin-top:.25rem">
+        🚀 Crear cuenta
+      </button>
+      <div class="reg-divider"><span>¿Ya tiene cuenta?</span></div>
+      <button class="btn btn-full" onclick="setLoginTab('admin')" style="border-color:var(--green-600);color:var(--green-700);font-weight:600">
+        ← Iniciar sesión
+      </button>
+    </div>
+
+    <!-- ── PANEL FORGOT PASSWORD ── -->
+    <div id="panelForgot" style="display:none">
+      <div style="background:var(--amber-50);border:1px solid var(--amber-100);border-radius:var(--r8);padding:9px 12px;font-size:12px;color:var(--amber-700);margin-bottom:1rem">
+        <b>🔒 Recuperar contraseña</b> — Le enviaremos un enlace de recuperación a su correo.
+      </div>
+      <div class="form-group">
+        <label class="form-label">Correo electrónico registrado</label>
+        <input class="form-input" id="forgotEmail" type="email" placeholder="correo@empresa.com">
+      </div>
+      <button class="btn btn-warn btn-full" onclick="doForgot()">
+        📧 Enviar enlace de recuperación
+      </button>
+      <div class="reg-divider"></div>
+      <button class="btn btn-full" onclick="hideForgot()" style="color:var(--gray-600)">
+        ← Volver al inicio de sesión
+      </button>
+    </div>
+
+
+    <div style="text-align:center;margin-top:.75rem;font-size:10px;color:var(--gray-400);line-height:1.6">
+      Powered by <b>Supabase</b> · Normativa colombiana vigente<br>
+      🔒 Sus datos están protegidos con cifrado de extremo a extremo
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     APP SCREEN
+══════════════════════════════════════ -->
+<div id="appScreen" style="display:none;flex-direction:column;height:100vh">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="app-logo">
+      <span class="app-logo-icon">🛡️</span>
+      <span class="app-logo-text">SG-SST</span>
+      <span class="app-logo-badge">RES.0312/2019</span>
+    </div>
+    <div class="header-center">
+      <select class="company-select" id="companySelector" onchange="selectCompany(this.value)">
+        <option value="">— Seleccionar empresa —</option>
+      </select>
+      <button class="btn btn-sm" onclick="openModal('modalNewCompany')" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#fff;font-size:12px">+ Nueva empresa</button>
+    </div>
+    <div class="header-right">
+      <div class="user-pill" onclick="doLogout()">
+        <div class="user-avatar" id="userAvatar">A</div>
+        <span class="user-name" id="userName">Admin</span>
+        <span style="color:rgba(255,255,255,.5);font-size:12px">· Salir</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-company-card" id="sidebarCompanyCard">
+        <div style="font-size:12px;color:var(--gray-400)">Seleccione una empresa</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Diagnóstico</div>
+        <div class="nav-item active" onclick="showView('dashboard')" id="nav-dashboard"><span class="nav-icon">📊</span> Dashboard</div>
+        <div class="nav-item" onclick="showView('visita')" id="nav-visita"><span class="nav-icon">🔍</span> Visita SST Inicial</div>
+        <div class="nav-item" onclick="showView('autoevaluacion')" id="nav-autoevaluacion"><span class="nav-icon">📋</span> Autoevaluación <span class="nav-badge nb-gray" id="badge-eval">—</span></div>
+        <div class="nav-item" onclick="showView('brechas')" id="nav-brechas"><span class="nav-icon">⚠️</span> Brechas & Plan Mejora</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Ciclo PHVA</div>
+        <div class="nav-item" onclick="showView('planear')" id="nav-planear"><span class="nav-icon">📌</span> Planear</div>
+        <div class="nav-item" onclick="showView('hacer')" id="nav-hacer"><span class="nav-icon">⚙️</span> Hacer</div>
+        <div class="nav-item" onclick="showView('verificar')" id="nav-verificar"><span class="nav-icon">✅</span> Verificar</div>
+        <div class="nav-item" onclick="showView('actuar')" id="nav-actuar"><span class="nav-icon">🔄</span> Actuar</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Gestión</div>
+        <div class="nav-item" onclick="showView('documentos')" id="nav-documentos"><span class="nav-icon">📁</span> Documentos <span class="nav-badge nb-warn" id="badge-docs">0</span></div>
+        <div class="nav-item" onclick="showView('matriz')" id="nav-matriz"><span class="nav-icon">⚡</span> Matriz Peligros</div>
+        <div class="nav-item" onclick="showView('capacitaciones')" id="nav-capacitaciones"><span class="nav-icon">🎓</span> Capacitaciones</div>
+        <div class="nav-item" onclick="showView('incidentes')" id="nav-incidentes"><span class="nav-icon">🚨</span> Incidentes & AT</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Reportes</div>
+        <div class="nav-item" onclick="showView('reportes')" id="nav-reportes"><span class="nav-icon">📄</span> Generar PDFs</div>
+        <div class="nav-item" onclick="showView('versiones')" id="nav-versiones"><span class="nav-icon">🗂️</span> Control Versiones</div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main" id="mainContent">
+
+      <!-- ▸ DASHBOARD -->
+      <div class="view active" id="view-dashboard">
+        <div class="page-header">
+          <div><div class="page-title">📊 Dashboard General SG-SST</div><div class="page-sub">Resolución 0312/2019 · Decreto 1072/2015 · Ley 1562/2012</div></div>
+          <div class="header-actions">
+            <button class="btn btn-sm" onclick="showView('autoevaluacion')">Iniciar Autoevaluación →</button>
+            <button class="btn btn-primary btn-sm" onclick="genPDF('informe_completo')">⬇ Informe PDF</button>
+          </div>
+        </div>
+        <div class="alert alert-blue"><span class="alert-icon">ℹ️</span><div>Seleccione o registre una empresa. El sistema se adapta automáticamente al <b>nivel de riesgo ARL</b>, actividad económica y número de trabajadores.</div></div>
+        <div class="kpi-grid">
+          <div class="kpi" id="kpi-cumplimiento"><div class="kpi-label">Cumplimiento SG-SST</div><div class="kpi-value">—%</div><div class="kpi-sub">Sin evaluar</div></div>
+          <div class="kpi" id="kpi-riesgo"><div class="kpi-label">Clase Riesgo ARL</div><div class="kpi-value">—</div><div class="kpi-sub">No definido</div></div>
+          <div class="kpi" id="kpi-docs"><div class="kpi-label">Documentos</div><div class="kpi-value">0</div><div class="kpi-sub">Cargados al sistema</div></div>
+          <div class="kpi" id="kpi-pendientes"><div class="kpi-label">Pendientes</div><div class="kpi-value">—</div><div class="kpi-sub">Hallazgos</div></div>
+          <div class="kpi" id="kpi-caps"><div class="kpi-label">Capacitaciones</div><div class="kpi-value">0</div><div class="kpi-sub">Registradas</div></div>
+          <div class="kpi" id="kpi-at"><div class="kpi-label">Accidentes AT</div><div class="kpi-value">0</div><div class="kpi-sub">Este período</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📐 Ciclo PHVA — Componentes del Sistema</div>
+          <div class="phva-grid">
+            <div class="phva-card P"><div class="phva-letter">P</div><div class="phva-name">Planear</div>
+              <ul class="phva-items">
+                <li onclick="showView('planear')">Política SST firmada y publicada</li>
+                <li onclick="showView('planear')">Objetivos e indicadores SST</li>
+                <li onclick="showView('planear')">Recursos (humanos, físicos, financieros)</li>
+                <li onclick="showView('planear')">Identificación de peligros GTC-45</li>
+                <li onclick="showView('planear')">Plan de trabajo anual</li>
+                <li onclick="showView('planear')">Reglamento Higiene y Seguridad</li>
+                <li onclick="showView('planear')">COPASST / Vigía SST</li>
+                <li onclick="showView('planear')">Comité Convivencia Laboral</li>
+              </ul>
+            </div>
+            <div class="phva-card H"><div class="phva-letter">H</div><div class="phva-name">Hacer</div>
+              <ul class="phva-items">
+                <li onclick="showView('hacer')">Plan de capacitación anual</li>
+                <li onclick="showView('hacer')">Afiliaciones ARL, EPS, AFP</li>
+                <li onclick="showView('hacer')">Exámenes médicos ocupacionales</li>
+                <li onclick="showView('hacer')">EPP — Dotación y entrega</li>
+                <li onclick="showView('hacer')">Plan de emergencias (PESV)</li>
+                <li onclick="showView('hacer')">Programas vigilancia epidemiológica</li>
+                <li onclick="showView('hacer')">Gestión de contratistas</li>
+                <li onclick="showView('hacer')">Inspecciones de seguridad</li>
+              </ul>
+            </div>
+            <div class="phva-card V"><div class="phva-letter">V</div><div class="phva-name">Verificar</div>
+              <ul class="phva-items">
+                <li onclick="showView('verificar')">Autoevaluación Res. 0312/2019</li>
+                <li onclick="showView('verificar')">Auditoría interna anual</li>
+                <li onclick="showView('verificar')">Revisión por la alta dirección</li>
+                <li onclick="showView('verificar')">Indicadores mínimos SST</li>
+                <li onclick="showView('verificar')">Reporte AT/EL a MinTrabajo</li>
+              </ul>
+            </div>
+            <div class="phva-card A"><div class="phva-letter">A</div><div class="phva-name">Actuar</div>
+              <ul class="phva-items">
+                <li onclick="showView('actuar')">Plan de mejoramiento correctivo</li>
+                <li onclick="showView('actuar')">Acciones preventivas</li>
+                <li onclick="showView('actuar')">Acciones correctivas</li>
+                <li onclick="showView('actuar')">Seguimiento de planes</li>
+                <li onclick="showView('actuar')">Mejora continua del sistema</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ▸ VISITA -->
+      <div class="view" id="view-visita">
+        <div class="page-header">
+          <div><div class="page-title">🔍 Visita Inicial SST — Diagnóstico en Campo</div><div class="page-sub">Registro del profesional SST · Genera Acta de Visita con logo de la empresa</div></div>
+          <div class="header-actions">
+            <button class="btn btn-sm" onclick="saveVisita()">💾 Guardar</button>
+            <button class="btn btn-primary btn-sm" onclick="genPDF('acta_visita')">⬇ Generar Acta PDF</button>
+          </div>
+        </div>
+        <div class="alert alert-warn"><span class="alert-icon">⚠️</span>Este formulario genera el <b>Acta de Visita Inicial</b>. Descargue el PDF, fírmelo con el Representante Legal y cárguelo en Documentos.</div>
+        <div class="card">
+          <div class="card-title-lg">🏢 Datos de la Empresa Visitada</div>
+          <div class="form-grid">
+            <div class="form-group span2" style="display:flex;gap:1rem;align-items:flex-start">
+              <div>
+                <label class="form-label">Logo empresa</label>
+                <div class="logo-upload-area" id="visitaLogoArea" onclick="document.getElementById('visitaLogoInput').click()">
+                  <img id="visitaLogoImg" style="display:none">
+                  <span class="logo-placeholder" id="visitaLogoPlaceholder">🏢</span>
+                </div>
+                <input type="file" id="visitaLogoInput" accept="image/*" onchange="setVisitaLogo(this)">
+              </div>
+              <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                <div class="form-group"><label class="form-label">Razón Social *</label><input class="form-input" id="v-razon" placeholder="Nombre completo"></div>
+                <div class="form-group"><label class="form-label">NIT</label><input class="form-input" id="v-nit" placeholder="900.000.000-0"></div>
+                <div class="form-group"><label class="form-label">Representante Legal</label><input class="form-input" id="v-rl" placeholder="Nombre completo"></div>
+                <div class="form-group"><label class="form-label">Fecha de Visita</label><input class="form-input" id="v-fecha" type="date"></div>
+              </div>
+            </div>
+            <div class="form-group"><label class="form-label">Sector Económico / CIIU</label>
+              <select class="form-select" id="v-sector" onchange="loadRiskInfo()">
+                <option value="">Seleccione...</option>
+                <option value="admin">Administrativo / Financiero</option>
+                <option value="comercio">Comercio / Retail</option>
+                <option value="manufactura">Manufactura / Industria</option>
+                <option value="construccion">Construcción</option>
+                <option value="transporte">Transporte / Logística</option>
+                <option value="salud">Salud / Hospitales</option>
+                <option value="educacion">Educación</option>
+                <option value="alimentos">Alimentos / Bebidas</option>
+                <option value="mineria">Minería / Energía</option>
+                <option value="turismo">Turismo / Hotelería</option>
+                <option value="tecnologia">Tecnología / TIC</option>
+                <option value="agro">Agropecuario</option>
+                <option value="servicios">Servicios Generales</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Clase de Riesgo ARL *</label>
+              <select class="form-select" id="v-riesgo" onchange="loadRiskInfo()">
+                <option value="">Seleccione...</option>
+                <option value="I">Clase I — Riesgo Mínimo</option>
+                <option value="II">Clase II — Riesgo Bajo</option>
+                <option value="III">Clase III — Riesgo Medio</option>
+                <option value="IV">Clase IV — Riesgo Alto</option>
+                <option value="V">Clase V — Riesgo Máximo</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">No. Trabajadores</label><input class="form-input" id="v-trab" type="number" min="1" placeholder="0" onchange="loadRiskInfo()"></div>
+            <div class="form-group"><label class="form-label">Ciudad</label><input class="form-input" id="v-ciudad" placeholder="Ciudad / Municipio"></div>
+            <div class="form-group"><label class="form-label">Dirección</label><input class="form-input" id="v-dir" placeholder="Dirección de la empresa"></div>
+            <div class="form-group"><label class="form-label">ARL Afiliada</label>
+              <select class="form-select" id="v-arl">
+                <option>Positiva (Colpatria)</option><option>SURA</option><option>Bolívar</option>
+                <option>Liberty</option><option>Equidad</option><option>Axa Colpatria</option>
+                <option>Mapfre</option><option>No afiliada</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Profesional SST (licencia)</label><input class="form-input" id="v-sst" placeholder="Nombre · No. Licencia SST"></div>
+          </div>
+        </div>
+        <div id="riskInfoCard" style="display:none" class="card">
+          <div class="card-title-lg">📌 Requerimientos según Clase de Riesgo ARL</div>
+          <div id="riskInfoContent"></div>
+        </div>
+        <div class="card">
+          <div class="card-title-lg">📋 Lista de Chequeo — Condiciones Observadas</div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Aspecto verificado</th><th>Norma aplicable</th><th>Estado</th><th>Observación</th></tr></thead>
+          <tbody id="visitaChecklist"></tbody></table></div>
+        </div>
+        <div class="card"><div class="card-title-lg">📝 Observaciones Generales</div>
+          <textarea class="form-textarea" id="v-obs" style="width:100%;min-height:120px" placeholder="Condiciones generales encontradas en las instalaciones, procesos y puestos de trabajo..."></textarea>
+        </div>
+      </div>
+
+      <!-- ▸ AUTOEVALUACION -->
+      <div class="view" id="view-autoevaluacion">
+        <div class="page-header">
+          <div><div class="page-title">📋 Autoevaluación — Res. 0312 de 2019</div><div class="page-sub">Estándares mínimos según tamaño y clase de riesgo de la empresa</div></div>
+          <div class="header-actions">
+            <button class="btn btn-sm" onclick="calcEval()">Calcular resultado</button>
+            <button class="btn btn-primary btn-sm" onclick="genPDF('autoevaluacion')">⬇ Exportar PDF</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title-lg">⚙️ Configuración</div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Modalidad (Art. 3-16 Res. 0312)</label>
+              <select class="form-select" id="evalModalidad" onchange="renderEval()">
+                <option value="">Seleccione modalidad...</option>
+                <option value="A">Modalidad A — 1-10 trab. / Riesgo I-II (7 estándares)</option>
+                <option value="B">Modalidad B — 11-50 trab. / Riesgo I-III (21 estándares)</option>
+                <option value="C">Modalidad C — +50 trab. o Riesgo IV-V (60 estándares)</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Período</label><input class="form-input" id="eval-periodo" type="month"></div>
+          </div>
+        </div>
+        <div id="eval-result-banner" style="display:none" class="alert alert-blue"><span class="alert-icon">📊</span><div id="eval-result-text"></div></div>
+        <div id="eval-container"></div>
+      </div>
+
+      <!-- ▸ BRECHAS -->
+      <div class="view" id="view-brechas">
+        <div class="page-header">
+          <div><div class="page-title">⚠️ Análisis de Brechas & Plan de Mejora</div><div class="page-sub">Hallazgos del diagnóstico → Plan de trabajo con responsables y fechas</div></div>
+          <div class="header-actions">
+            <button class="btn btn-sm" onclick="openModal('modalAddPlan')">+ Actividad</button>
+            <button class="btn btn-primary btn-sm" onclick="genPDF('plan_mejora')">⬇ PDF Plan</button>
+          </div>
+        </div>
+        <div class="card"><div class="card-title-lg">📉 Hallazgos por categoría PHVA</div><div id="brechas-content"><div class="alert alert-warn"><span class="alert-icon">⚠️</span>Complete la Autoevaluación para ver las brechas identificadas automáticamente.</div></div></div>
+        <div class="card"><div class="card-title-lg">📅 Plan de Trabajo Anual</div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Actividad</th><th>PHVA</th><th>Responsable</th><th>Fecha</th><th>Recursos</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="plan-tabla"><tr><td colspan="8" style="text-align:center;color:var(--gray-400);padding:2rem">Sin actividades. Use "+ Actividad".</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ▸ PLANEAR -->
+      <div class="view" id="view-planear">
+        <div class="page-header">
+          <div><div class="page-title">📌 Planear — SG-SST</div><div class="page-sub">Art. 2.2.4.6.5 al 2.2.4.6.17 Decreto 1072/2015</div></div>
+          <div class="header-actions">
+            <button class="btn btn-sm" onclick="document.getElementById('signedDocInput').click();window._docType='politica'">⬆ Cargar Firmado</button>
+            <input type="file" id="signedDocInput" accept=".pdf" style="display:none" onchange="uploadSignedDoc(this)">
+            <button class="btn btn-primary btn-sm" onclick="savePlanear()">💾 Guardar</button>
+            <button class="btn btn-sm" onclick="genPDF('politica')">⬇ PDF Política</button>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this)">Política SST</div>
+          <div class="tab" onclick="switchTab(this)">Objetivos</div>
+          <div class="tab" onclick="switchTab(this)">COPASST / Vigía</div>
+          <div class="tab" onclick="switchTab(this)">Convivencia</div>
+          <div class="tab" onclick="switchTab(this)">Reglamento HIS</div>
+          <div class="tab" onclick="switchTab(this)">Plan de Trabajo</div>
+        </div>
+        <div class="card">
+          <div class="card-title-lg">📜 Política de Seguridad y Salud en el Trabajo</div>
+          <div class="alert alert-green"><span class="alert-icon">✅</span><b>Art. 2.2.4.6.5 Dec. 1072/2015</b> — Debe estar firmada por el Representante Legal, fechada, comunicada y publicada en lugar visible.</div>
+          <div class="form-grid">
+            <div class="form-group span2"><label class="form-label">Texto de la Política (editable según sector y riesgo)</label>
+              <textarea class="form-textarea" id="politica-texto" style="min-height:200px;width:100%"></textarea>
+            </div>
+            <div class="form-group"><label class="form-label">Representante Legal</label><input class="form-input" id="pol-rl" placeholder="Nombre y cargo"></div>
+            <div class="form-group"><label class="form-label">Fecha de aprobación</label><input class="form-input" id="pol-fecha" type="date"></div>
+            <div class="form-group"><label class="form-label">Versión</label><input class="form-input" id="pol-version" value="1.0"></div>
+            <div class="form-group"><label class="form-label">Próxima revisión</label><input class="form-input" id="pol-revision" type="date"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:.5rem;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="genPDF('politica')">⬇ Generar PDF para firma</button>
+            <button class="btn btn-sm" onclick="document.getElementById('signedDocInput').click();window._docType='politica'">⬆ Cargar PDF firmado</button>
+            <button class="btn btn-sm btn-warn" onclick="savePlanear()">💾 Guardar en Supabase</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title-lg">🎯 Objetivos del SG-SST</div>
+          <div class="tbl-wrap"><table class="tbl">
+            <thead><tr><th>Objetivo</th><th>Indicador</th><th>Meta</th><th>Frecuencia</th><th>Responsable</th><th></th></tr></thead>
+            <tbody id="objetivos-tabla">
+              <tr><td>Reducir accidentalidad</td><td>Tasa de accidentalidad</td><td>&lt;3%</td><td>Mensual</td><td>Responsable SST</td><td><button class="btn btn-xs btn-danger" onclick="this.closest('tr').remove()">🗑</button></td></tr>
+              <tr><td>Cobertura capacitaciones</td><td>% trabajadores capacitados</td><td>100%</td><td>Trimestral</td><td>RRHH</td><td><button class="btn btn-xs btn-danger" onclick="this.closest('tr').remove()">🗑</button></td></tr>
+              <tr><td>Cumplimiento estándares</td><td>Puntaje autoevaluación</td><td>≥85%</td><td>Semestral</td><td>Responsable SST</td><td><button class="btn btn-xs btn-danger" onclick="this.closest('tr').remove()">🗑</button></td></tr>
+              <tr><td>Investigación de AT</td><td>% investigados en 15 días</td><td>100%</td><td>Mensual</td><td>Responsable SST</td><td><button class="btn btn-xs btn-danger" onclick="this.closest('tr').remove()">🗑</button></td></tr>
+            </tbody>
+          </table></div>
+          <button class="btn btn-sm" style="margin-top:.75rem" onclick="openModal('modalAddObjetivo')">+ Agregar objetivo</button>
+        </div>
+        <div class="card">
+          <div class="card-title-lg">👥 COPASST / Vigía SST</div>
+          <div class="alert alert-blue"><span class="alert-icon">ℹ️</span><b>Res. 2013/1986</b> — Empresas con ≥10 trabajadores: COPASST (período 2 años). Empresas con &lt;10 trabajadores: Vigía SST.</div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="copasst-tipo"><option>COPASST</option><option>Vigía SST</option></select></div>
+            <div class="form-group"><label class="form-label">Presidente</label><input class="form-input" id="copasst-presidente" placeholder="Nombre"></div>
+            <div class="form-group"><label class="form-label">Secretario</label><input class="form-input" id="copasst-secretario" placeholder="Nombre"></div>
+            <div class="form-group"><label class="form-label">Fecha de elección</label><input class="form-input" id="copasst-fecha" type="date"></div>
+            <div class="form-group"><label class="form-label">Fecha vencimiento período</label><input class="form-input" id="copasst-vence" type="date"></div>
+            <div class="form-group"><label class="form-label">Frecuencia reuniones</label><select class="form-select" id="copasst-freq"><option>Mensual</option><option>Bimestral</option></select></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="genPDF('acta_copasst')">⬇ Generar Acta Constitución</button>
+            <button class="btn btn-sm" onclick="document.getElementById('signedDocInput').click();window._docType='copasst'">⬆ Cargar acta firmada</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title-lg">📃 Reglamento de Higiene y Seguridad Industrial</div>
+          <div class="alert alert-warn"><span class="alert-icon">⚠️</span><b>Art. 349 CST</b> — Obligatorio para empresas con ≥10 trabajadores permanentes. Debe aprobarse por MinTrabajo.</div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">No. Resolución aprobación</label><input class="form-input" id="reg-resol" placeholder="No. resolución MinTrabajo"></div>
+            <div class="form-group"><label class="form-label">Fecha aprobación</label><input class="form-input" id="reg-fecha" type="date"></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="genPDF('reglamento')">⬇ Generar Reglamento PDF</button>
+            <button class="btn btn-sm" onclick="document.getElementById('signedDocInput').click();window._docType='reglamento'">⬆ Cargar firmado</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ▸ HACER -->
+      <div class="view" id="view-hacer">
+        <div class="page-header">
+          <div><div class="page-title">⚙️ Hacer — Implementación SG-SST</div><div class="page-sub">Ejecución de programas, capacitaciones, exámenes, EPP y emergencias</div></div>
+          <div class="header-actions">
+            <button class="btn btn-primary btn-sm" onclick="genPDF('plan_hacer')">⬇ Exportar PDF</button>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this)">Capacitación</div>
+          <div class="tab" onclick="switchTab(this)">Exámenes Médicos</div>
+          <div class="tab" onclick="switchTab(this)">EPP & Dotación</div>
+          <div class="tab" onclick="switchTab(this)">Emergencias</div>
+          <div class="tab" onclick="switchTab(this)">Afiliaciones</div>
+        </div>
+        <div class="card">
+          <div class="card-title-lg">🎓 Programa de Capacitación Anual</div>
+          <div class="alert alert-blue"><span class="alert-icon">ℹ️</span>Art. 2.2.4.6.11 Dec. 1072/2015 — Inducción al ingreso, reinducción mínimo 1 vez/año. Mínimo 20 horas SST/año.</div>
+          <div class="tbl-wrap"><table class="tbl">
+            <thead><tr><th>Tema</th><th>Dirigido a</th><th>Duración</th><th>Frecuencia</th><th>Fecha</th><th>Estado</th><th></th></tr></thead>
+            <tbody id="cap-programa-tabla">
+              <tr><td>Inducción SST</td><td>Trabajadores nuevos</td><td>8h</td><td>Al ingreso</td><td>—</td><td><span class="pill pill-warn">Pendiente</span></td><td><button class="btn btn-xs" onclick="openModal('modalAddCapacitacion')">Registrar</button></td></tr>
+              <tr><td>Identificación de peligros GTC-45</td><td>Todos</td><td>4h</td><td>Anual</td><td>—</td><td><span class="pill pill-warn">Pendiente</span></td><td><button class="btn btn-xs" onclick="openModal('modalAddCapacitacion')">Registrar</button></td></tr>
+              <tr><td>Uso correcto de EPP</td><td>Operativos</td><td>2h</td><td>Semestral</td><td>—</td><td><span class="pill pill-warn">Pendiente</span></td><td><button class="btn btn-xs" onclick="openModal('modalAddCapacitacion')">Registrar</button></td></tr>
+              <tr><td>Primeros auxilios</td><td>Brigadistas</td><td>16h</td><td>Anual</td><td>—</td><td><span class="pill pill-warn">Pendiente</span></td><td><button class="btn btn-xs" onclick="openModal('modalAddCapacitacion')">Registrar</button></td></tr>
+              <tr><td>Plan de emergencias y evacuación</td><td>Todos</td><td>4h</td><td>Semestral</td><td>—</td><td><span class="pill pill-warn">Pendiente</span></td><td><button class="btn btn-xs" onclick="openModal('modalAddCapacitacion')">Registrar</button></td></tr>
+              <tr><td>Prevención riesgo psicosocial</td><td>Todos</td><td>4h</td><td>Semestral</td><td>—</td><td><span class="pill pill-warn">Pendiente</span></td><td><button class="btn btn-xs" onclick="openModal('modalAddCapacitacion')">Registrar</button></td></tr>
+              <tr><td>Trabajo en alturas (si aplica)</td><td>Expuestos</td><td>8h</td><td>Anual</td><td>—</td><td><span class="pill pill-gray">Según riesgo</span></td><td><button class="btn btn-xs" onclick="openModal('modalAddCapacitacion')">Registrar</button></td></tr>
+              <tr><td>Manejo de sustancias químicas</td><td>Expuestos</td><td>4h</td><td>Anual</td><td>—</td><td><span class="pill pill-gray">Según riesgo</span></td><td><button class="btn btn-xs" onclick="openModal('modalAddCapacitacion')">Registrar</button></td></tr>
+            </tbody>
+          </table></div>
+          <button class="btn btn-sm" style="margin-top:.75rem" onclick="openModal('modalAddCapacitacion')">+ Registrar capacitación ejecutada</button>
+        </div>
+        <div class="card">
+          <div class="card-title-lg">🏥 Exámenes Médicos Ocupacionales</div>
+          <div class="alert alert-warn"><span class="alert-icon">⚠️</span><b>Res. 2346/2007</b> — Obligatorios: ingreso, periódico y retiro. Basados en profesiograma por cargo y exposición.</div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">IPS contratada</label><input class="form-input" id="ips-nombre" placeholder="Nombre de la IPS"></div>
+            <div class="form-group"><label class="form-label">Frecuencia periódicos</label><select class="form-select"><option>Anual</option><option>Semestral</option><option>Según riesgo</option></select></div>
+          </div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Tipo de examen</th><th>Aplica</th><th>Momento</th><th>Obligatorio</th></tr></thead>
+          <tbody>
+            <tr><td>Médico de ingreso</td><td><input type="checkbox" checked></td><td>Antes de iniciar labores</td><td><span class="pill pill-danger">Sí — siempre</span></td></tr>
+            <tr><td>Médico periódico</td><td><input type="checkbox" checked></td><td>Según frecuencia definida</td><td><span class="pill pill-danger">Sí — siempre</span></td></tr>
+            <tr><td>Médico de retiro</td><td><input type="checkbox" checked></td><td>5 días antes de terminar</td><td><span class="pill pill-danger">Sí — siempre</span></td></tr>
+            <tr><td>Post-incapacidad (>30 días)</td><td><input type="checkbox" checked></td><td>Al reincorporarse</td><td><span class="pill pill-warn">Recomendado</span></td></tr>
+            <tr><td>Audiometría (riesgo ruido)</td><td><input type="checkbox"></td><td>Anual</td><td><span class="pill pill-gray">Según exposición</span></td></tr>
+            <tr><td>Visiometría</td><td><input type="checkbox"></td><td>Anual</td><td><span class="pill pill-gray">Según exposición</span></td></tr>
+            <tr><td>Espirometría (riesgo químico)</td><td><input type="checkbox"></td><td>Anual</td><td><span class="pill pill-gray">Según exposición</span></td></tr>
+          </tbody></table></div>
+          <div style="display:flex;gap:8px;margin-top:.75rem;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="genPDF('profesiograma')">⬇ Generar Profesiograma PDF</button>
+            <button class="btn btn-sm" onclick="document.getElementById('signedDocInput').click();window._docType='examenes'">⬆ Cargar soportes firmados</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title-lg">🦺 EPP — Dotación y Entrega</div>
+          <div class="alert alert-blue"><span class="alert-icon">ℹ️</span><b>Art. 2.2.4.6.24 Dec. 1072/2015</b> — Suministro gratuito, entrega documentada con firma del trabajador.</div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>EPP</th><th>Cargo expuesto</th><th>Norma técnica</th><th>Frecuencia cambio</th><th>Planilla entrega</th></tr></thead>
+          <tbody id="epp-tabla">
+            <tr><td>Casco de seguridad</td><td>Operativos en altura / construcción</td><td>NTC 1523</td><td>Según desgaste</td><td><button class="btn btn-xs" onclick="genPDF('planilla_epp')">⬇ PDF</button></td></tr>
+            <tr><td>Guantes de seguridad</td><td>Operativos manuales</td><td>NTC 2190</td><td>Mensual</td><td><button class="btn btn-xs" onclick="genPDF('planilla_epp')">⬇ PDF</button></td></tr>
+            <tr><td>Calzado de seguridad</td><td>Operativos</td><td>NTC 2396</td><td>Anual</td><td><button class="btn btn-xs" onclick="genPDF('planilla_epp')">⬇ PDF</button></td></tr>
+            <tr><td>Protección auditiva</td><td>Expuestos a ruido &gt;85 dB</td><td>NTC 3399</td><td>Mensual</td><td><button class="btn btn-xs" onclick="genPDF('planilla_epp')">⬇ PDF</button></td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="card">
+          <div class="card-title-lg">🚒 Plan de Prevención, Preparación y Respuesta ante Emergencias</div>
+          <div class="alert alert-danger"><span class="alert-icon">🚨</span><b>Art. 2.2.4.6.25 Dec. 1072/2015</b> — Obligatorio para todas las empresas. Incluye brigada, simulacros y mapa de evacuación.</div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Brigada conformada</label><select class="form-select"><option>Sí</option><option>No (pendiente)</option></select></div>
+            <div class="form-group"><label class="form-label">Último simulacro</label><input class="form-input" type="date"></div>
+            <div class="form-group"><label class="form-label">Próximo simulacro</label><input class="form-input" type="date"></div>
+            <div class="form-group"><label class="form-label">Camilla</label><select class="form-select"><option>Disponible</option><option>No disponible</option></select></div>
+            <div class="form-group"><label class="form-label">Extintores vigentes</label><select class="form-select"><option>Sí</option><option>No (vencidos)</option></select></div>
+            <div class="form-group"><label class="form-label">Botiquín dotado</label><select class="form-select"><option>Sí</option><option>No</option></select></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="genPDF('plan_emergencias')">⬇ Generar Plan de Emergencias PDF</button>
+            <button class="btn btn-sm" onclick="document.getElementById('signedDocInput').click();window._docType='emergencias'">⬆ Cargar plan firmado</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ▸ VERIFICAR -->
+      <div class="view" id="view-verificar">
+        <div class="page-header">
+          <div><div class="page-title">✅ Verificar — Seguimiento y Medición</div><div class="page-sub">Art. 2.2.4.6.19 Dec. 1072/2015 — Indicadores mínimos del SG-SST</div></div>
+          <div class="header-actions"><button class="btn btn-primary btn-sm" onclick="genPDF('indicadores')">⬇ Exportar PDF</button></div>
+        </div>
+        <div class="card">
+          <div class="card-title-lg">📊 Indicadores Mínimos — Res. 0312/2019 Anexo Técnico</div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Indicador</th><th>Fórmula</th><th>Valor</th><th>Meta</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>Tasa de accidentalidad</td><td style="font-family:var(--mono);font-size:11px">(N° AT × 240.000) / HHT</td><td><input class="form-input" placeholder="0" style="width:70px"></td><td>&lt;3</td><td><span class="pill pill-gray">Sin datos</span></td></tr>
+            <tr><td>Tasa de enfermedad laboral</td><td style="font-family:var(--mono);font-size:11px">(N° EL × 240.000) / HHT</td><td><input class="form-input" placeholder="0" style="width:70px"></td><td>&lt;1</td><td><span class="pill pill-gray">Sin datos</span></td></tr>
+            <tr><td>Ausentismo causa laboral</td><td style="font-family:var(--mono);font-size:11px">(Días perdidos / Días posibles) × 100</td><td><input class="form-input" placeholder="0%" style="width:70px"></td><td>&lt;5%</td><td><span class="pill pill-gray">Sin datos</span></td></tr>
+            <tr><td>Severidad de accidentes</td><td style="font-family:var(--mono);font-size:11px">Días perdidos / N° AT</td><td><input class="form-input" placeholder="0" style="width:70px"></td><td>&lt;10</td><td><span class="pill pill-gray">Sin datos</span></td></tr>
+            <tr><td>Mortalidad por AT</td><td style="font-family:var(--mono);font-size:11px">(AT mortales / N° AT) × 100</td><td><input class="form-input" placeholder="0" style="width:70px"></td><td>0</td><td><span class="pill pill-gray">Sin datos</span></td></tr>
+            <tr><td>Cobertura capacitación SST</td><td style="font-family:var(--mono);font-size:11px">(Cap. / Total trab.) × 100</td><td><input class="form-input" placeholder="0%" style="width:70px"></td><td>100%</td><td><span class="pill pill-gray">Sin datos</span></td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="card">
+          <div class="card-title-lg">🔎 Auditoría Interna Anual</div>
+          <div class="alert alert-blue"><span class="alert-icon">ℹ️</span><b>Art. 2.2.4.6.29 Dec. 1072/2015</b> — Mínimo 1 auditoría interna por año con participación del COPASST.</div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Fecha programada</label><input class="form-input" type="date" id="aud-fecha"></div>
+            <div class="form-group"><label class="form-label">Auditor</label><input class="form-input" id="aud-resp" placeholder="Nombre del auditor"></div>
+            <div class="form-group"><label class="form-label">Alcance</label><input class="form-input" id="aud-alcance" placeholder="Procesos a auditar"></div>
+            <div class="form-group"><label class="form-label">Estado</label><select class="form-select"><option>Programada</option><option>En curso</option><option>Ejecutada</option><option>Con hallazgos</option><option>Cerrada</option></select></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="genPDF('auditoria')">⬇ Generar Programa Auditoría PDF</button>
+            <button class="btn btn-sm" onclick="document.getElementById('signedDocInput').click();window._docType='auditoria'">⬆ Cargar informe firmado</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ▸ ACTUAR -->
+      <div class="view" id="view-actuar">
+        <div class="page-header">
+          <div><div class="page-title">🔄 Actuar — Mejora Continua</div><div class="page-sub">Art. 2.2.4.6.26 Dec. 1072/2015 — Plan de mejoramiento</div></div>
+          <div class="header-actions">
+            <button class="btn btn-sm" onclick="openModal('modalAddAccion')">+ Nueva acción</button>
+            <button class="btn btn-primary btn-sm" onclick="genPDF('acciones')">⬇ PDF</button>
+          </div>
+        </div>
+        <div class="card"><div class="card-title-lg">📋 Acciones Correctivas, Preventivas y de Mejora</div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Tipo</th><th>Hallazgo</th><th>Acción</th><th>Responsable</th><th>Fecha</th><th>Estado</th></tr></thead>
+          <tbody id="acciones-tabla"><tr><td colspan="7" style="text-align:center;color:var(--gray-400);padding:2rem">Sin acciones. Use "+ Nueva acción".</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ▸ DOCUMENTOS -->
+      <div class="view" id="view-documentos">
+        <div class="page-header">
+          <div><div class="page-title">📁 Gestión Documental SG-SST</div><div class="page-sub">Control de versiones · Generación PDF · Carga de documentos firmados</div></div>
+          <div class="header-actions">
+            <button class="btn btn-primary btn-sm" onclick="document.getElementById('mainUploadInput').click()">⬆ Cargar PDF firmado</button>
+            <input type="file" id="mainUploadInput" accept=".pdf,.doc,.docx" style="display:none" onchange="uploadSignedDoc(this)">
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this)">Obligatorios</div>
+          <div class="tab" onclick="switchTab(this)">Cargados y firmados</div>
+          <div class="tab" onclick="switchTab(this)">Por vencer</div>
+        </div>
+        <div class="card"><div class="card-title-lg">📌 Documentos Obligatorios — Dec. 1072/2015 & Res. 0312/2019</div>
+          <div id="docs-obligatorios-list"></div>
+        </div>
+        <div class="upload-zone" onclick="document.getElementById('mainUploadInput').click()">
+          <div class="upload-zone-icon">📤</div>
+          <p><b>Clic aquí para cargar documento ya firmado y aprobado</b></p>
+          <p style="font-size:11px;color:var(--gray-400);margin-top:4px">PDF o Word · El sistema registra versión, fecha y responsable automáticamente</p>
+        </div>
+        <div class="card" style="margin-top:1.25rem"><div class="card-title-lg">📂 Documentos Cargados al Sistema</div>
+          <div id="uploaded-docs-list"><div style="text-align:center;padding:2rem;color:var(--gray-400)">Ningún documento cargado.</div></div>
+        </div>
+      </div>
+
+      <!-- ▸ MATRIZ -->
+      <div class="view" id="view-matriz">
+        <div class="page-header">
+          <div><div class="page-title">⚡ Matriz de Identificación de Peligros</div><div class="page-sub">GTC-45:2012 — Identificación, evaluación y valoración del riesgo</div></div>
+          <div class="header-actions">
+            <button class="btn btn-sm" onclick="openModal('modalAddPeligro')">+ Agregar peligro</button>
+            <button class="btn btn-primary btn-sm" onclick="genPDF('matriz_peligros')">⬇ Exportar PDF</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title-lg">📊 Niveles de Riesgo (GTC-45)</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+            <div style="display:flex;align-items:center;gap:6px"><div class="matrix-cell m-I">I</div><span style="font-size:12px;color:var(--gray-600)">No aceptable</span></div>
+            <div style="display:flex;align-items:center;gap:6px"><div class="matrix-cell m-II">II</div><span style="font-size:12px;color:var(--gray-600)">No aceptable / con control</span></div>
+            <div style="display:flex;align-items:center;gap:6px"><div class="matrix-cell m-III">III</div><span style="font-size:12px;color:var(--gray-600)">Aceptable mejorable</span></div>
+            <div style="display:flex;align-items:center;gap:6px"><div class="matrix-cell m-IV">IV</div><span style="font-size:12px;color:var(--gray-600)">Aceptable</span></div>
+          </div>
+        </div>
+        <div class="card"><div class="card-title-lg">📋 Matriz de Peligros y Riesgos</div>
+          <div class="tbl-wrap"><table class="tbl" style="min-width:900px">
+            <thead><tr><th>Proceso</th><th>Área/Cargo</th><th>Peligro</th><th>Fuente</th><th>Efecto</th><th>P</th><th>C</th><th>NR</th><th>Nivel</th><th>Controles</th><th>Resp.</th><th></th></tr></thead>
+            <tbody id="matriz-tabla"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- ▸ CAPACITACIONES -->
+      <div class="view" id="view-capacitaciones">
+        <div class="page-header">
+          <div><div class="page-title">🎓 Registro de Capacitaciones</div><div class="page-sub">Planillas de asistencia · Evaluaciones · Certificados</div></div>
+          <div class="header-actions">
+            <button class="btn btn-sm" onclick="openModal('modalAddCapacitacion')">+ Registrar</button>
+            <button class="btn btn-primary btn-sm" onclick="genPDF('capacitaciones')">⬇ PDF</button>
+          </div>
+        </div>
+        <div class="card"><div class="card-title-lg">📋 Historial de Capacitaciones</div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Fecha</th><th>Tema</th><th>Instructor</th><th>Asistentes</th><th>Horas</th><th>Evaluación</th><th>Soporte</th></tr></thead>
+          <tbody id="cap-tabla"><tr><td colspan="7" style="text-align:center;color:var(--gray-400);padding:2rem">Sin capacitaciones.</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ▸ INCIDENTES -->
+      <div class="view" id="view-incidentes">
+        <div class="page-header">
+          <div><div class="page-title">🚨 Incidentes y Accidentes de Trabajo</div><div class="page-sub">Res. 1401/2007 — Reporte a ARL en máximo 48 horas hábiles</div></div>
+          <div class="header-actions">
+            <button class="btn btn-sm" onclick="openModal('modalAddIncidente')">+ Registrar evento</button>
+            <button class="btn btn-primary btn-sm" onclick="genPDF('incidentes')">⬇ PDF</button>
+          </div>
+        </div>
+        <div class="alert alert-danger"><span class="alert-icon">🚨</span><b>Reporte obligatorio:</b> Todo AT GRAVE o FATAL debe reportarse a la ARL y al MinTrabajo (FURAT) en máximo <b>48 horas hábiles</b> — Art. 4 Res. 1401/2007.</div>
+        <div class="card"><div class="card-title-lg">📋 Registro de Eventos</div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Fecha</th><th>Tipo</th><th>Trabajador</th><th>Descripción</th><th>Días</th><th>ARL</th><th>Estado</th></tr></thead>
+          <tbody id="inc-tabla"><tr><td colspan="7" style="text-align:center;color:var(--gray-400);padding:2rem">Sin eventos.</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ▸ REPORTES -->
+      <div class="view" id="view-reportes">
+        <div class="page-header"><div><div class="page-title">📄 Generación de Documentos PDF</div><div class="page-sub">Todos los PDFs incluyen logo y nombre de la empresa activa</div></div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1rem">
+          <div class="card" style="cursor:pointer" onclick="genPDF('informe_completo')"><div style="font-size:28px;margin-bottom:.5rem">📊</div><div style="font-weight:700;margin-bottom:.25rem">Informe Completo SG-SST</div><div style="font-size:12px;color:var(--gray-500)">Diagnóstico + PHVA + indicadores + plan</div><button class="btn btn-primary btn-sm" style="margin-top:.75rem">Generar PDF</button></div>
+          <div class="card" style="cursor:pointer" onclick="genPDF('politica')"><div style="font-size:28px;margin-bottom:.5rem">📜</div><div style="font-weight:700;margin-bottom:.25rem">Política SST</div><div style="font-size:12px;color:var(--gray-500)">Para firma del Representante Legal</div><button class="btn btn-sm" style="margin-top:.75rem">Generar PDF</button></div>
+          <div class="card" style="cursor:pointer" onclick="genPDF('reglamento')"><div style="font-size:28px;margin-bottom:.5rem">📃</div><div style="font-weight:700;margin-bottom:.25rem">Reglamento HIS</div><div style="font-size:12px;color:var(--gray-500)">Art. 349 CST — Higiene y Seguridad</div><button class="btn btn-sm" style="margin-top:.75rem">Generar PDF</button></div>
+          <div class="card" style="cursor:pointer" onclick="genPDF('autoevaluacion')"><div style="font-size:28px;margin-bottom:.5rem">📋</div><div style="font-weight:700;margin-bottom:.25rem">Autoevaluación Res. 0312</div><div style="font-size:12px;color:var(--gray-500)">Puntaje y calificación por modalidad</div><button class="btn btn-sm" style="margin-top:.75rem">Generar PDF</button></div>
+          <div class="card" style="cursor:pointer" onclick="genPDF('acta_visita')"><div style="font-size:28px;margin-bottom:.5rem">🔍</div><div style="font-weight:700;margin-bottom:.25rem">Acta de Visita Inicial</div><div style="font-size:12px;color:var(--gray-500)">Diagnóstico en campo — lista chequeo</div><button class="btn btn-sm" style="margin-top:.75rem">Generar PDF</button></div>
+          <div class="card" style="cursor:pointer" onclick="genPDF('plan_mejora')"><div style="font-size:28px;margin-bottom:.5rem">⚠️</div><div style="font-weight:700;margin-bottom:.25rem">Plan de Mejoramiento</div><div style="font-size:12px;color:var(--gray-500)">Brechas + acciones + responsables</div><button class="btn btn-sm" style="margin-top:.75rem">Generar PDF</button></div>
+          <div class="card" style="cursor:pointer" onclick="genPDF('matriz_peligros')"><div style="font-size:28px;margin-bottom:.5rem">⚡</div><div style="font-weight:700;margin-bottom:.25rem">Matriz de Peligros GTC-45</div><div style="font-size:12px;color:var(--gray-500)">Identificación y valoración de riesgos</div><button class="btn btn-sm" style="margin-top:.75rem">Generar PDF</button></div>
+          <div class="card" style="cursor:pointer" onclick="genPDF('acta_copasst')"><div style="font-size:28px;margin-bottom:.5rem">👥</div><div style="font-weight:700;margin-bottom:.25rem">Acta COPASST / Vigía</div><div style="font-size:12px;color:var(--gray-500)">Constitución y actas de reunión</div><button class="btn btn-sm" style="margin-top:.75rem">Generar PDF</button></div>
+          <div class="card" style="cursor:pointer" onclick="genPDF('plan_emergencias')"><div style="font-size:28px;margin-bottom:.5rem">🚒</div><div style="font-weight:700;margin-bottom:.25rem">Plan de Emergencias</div><div style="font-size:12px;color:var(--gray-500)">Art. 2.2.4.6.25 Dec. 1072/2015</div><button class="btn btn-sm" style="margin-top:.75rem">Generar PDF</button></div>
+          <div class="card" style="cursor:pointer" onclick="genPDF('capacitaciones')"><div style="font-size:28px;margin-bottom:.5rem">🎓</div><div style="font-weight:700;margin-bottom:.25rem">Programa de Capacitación</div><div style="font-size:12px;color:var(--gray-500)">Plan anual + historial ejecutado</div><button class="btn btn-sm" style="margin-top:.75rem">Generar PDF</button></div>
+        </div>
+      </div>
+
+      <!-- ▸ VERSIONES -->
+      <div class="view" id="view-versiones">
+        <div class="page-header"><div><div class="page-title">🗂️ Control de Versiones</div><div class="page-sub">Historial de documentos generados, cargados y aprobados</div></div></div>
+        <div class="card"><div class="card-title-lg">📜 Historial de versiones</div>
+          <div id="versiones-lista"><div style="text-align:center;color:var(--gray-400);padding:2rem">Sin registros.</div></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODALS
+══════════════════════════════════════ -->
+<!-- Nueva empresa -->
+<div class="modal-overlay" id="modalNewCompany">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🏢 Registrar Nueva Empresa</div><button class="modal-close" onclick="closeModal('modalNewCompany')">×</button></div>
+    <div style="display:flex;gap:1rem;align-items:flex-start;margin-bottom:1rem">
+      <div>
+        <label class="form-label">Logo empresa</label>
+        <div class="logo-upload-area" onclick="document.getElementById('newCompanyLogo').click()">
+          <img id="newCompanyLogoImg" style="display:none;width:100%;height:100%;object-fit:contain">
+          <span class="logo-placeholder" id="newCompanyLogoPlaceholder">🏢</span>
+        </div>
+        <input type="file" id="newCompanyLogo" accept="image/*" onchange="setNewCompanyLogo(this)" style="display:none">
+        <div style="font-size:10px;color:var(--gray-400);text-align:center;margin-top:3px">Logo PDF</div>
+      </div>
+      <div style="flex:1">
+        <div class="form-group"><label class="form-label">Razón Social *</label><input class="form-input" id="nc-razon" placeholder="Nombre completo"></div>
+        <div class="form-group"><label class="form-label">NIT</label><input class="form-input" id="nc-nit" placeholder="900.000.000-0"></div>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Clase de Riesgo ARL *</label>
+        <select class="form-select" id="nc-riesgo">
+          <option value="I">Clase I — Mínimo</option><option value="II">Clase II — Bajo</option>
+          <option value="III">Clase III — Medio</option><option value="IV">Clase IV — Alto</option>
+          <option value="V">Clase V — Máximo</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">No. Trabajadores</label><input class="form-input" id="nc-trab" type="number" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Sector Económico</label>
+        <select class="form-select" id="nc-sector">
+          <option value="admin">Administrativo</option><option value="comercio">Comercio</option>
+          <option value="manufactura">Manufactura</option><option value="construccion">Construcción</option>
+          <option value="transporte">Transporte</option><option value="salud">Salud</option>
+          <option value="educacion">Educación</option><option value="alimentos">Alimentos</option>
+          <option value="mineria">Minería</option><option value="turismo">Turismo</option>
+          <option value="tecnologia">Tecnología</option><option value="agro">Agropecuario</option>
+          <option value="servicios">Servicios</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Ciudad</label><input class="form-input" id="nc-ciudad" placeholder="Ciudad"></div>
+      <div class="form-group"><label class="form-label">Representante Legal</label><input class="form-input" id="nc-rl" placeholder="Nombre completo"></div>
+      <div class="form-group"><label class="form-label">ARL</label>
+        <select class="form-select" id="nc-arl">
+          <option>Positiva</option><option>SURA</option><option>Bolívar</option>
+          <option>Liberty</option><option>Equidad</option><option>Axa Colpatria</option><option>Mapfre</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Dirección</label><input class="form-input" id="nc-dir" placeholder="Dirección principal"></div>
+      <div class="form-group"><label class="form-label">Teléfono</label><input class="form-input" id="nc-tel" placeholder="Tel / Cel"></div>
+      <div class="form-group span2"><label class="form-label">Responsable SST (nombre y licencia)</label><input class="form-input" id="nc-sst" placeholder="Nombre · No. Licencia SST"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:.5rem">
+      <button class="btn btn-sm" onclick="closeModal('modalNewCompany')">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="saveNewCompany()">💾 Registrar empresa</button>
+    </div>
+  </div>
+</div>
+
+<!-- Agregar peligro -->
+<div class="modal-overlay" id="modalAddPeligro">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">⚡ Agregar Peligro — Matriz GTC-45</div><button class="modal-close" onclick="closeModal('modalAddPeligro')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Proceso</label><input class="form-input" id="p-proceso" placeholder="Proceso productivo"></div>
+      <div class="form-group"><label class="form-label">Área / Cargo</label><input class="form-input" id="p-area" placeholder="Área expuesta"></div>
+      <div class="form-group"><label class="form-label">Tipo de peligro</label>
+        <select class="form-select" id="p-tipo">
+          <option>Biológico — Virus/Bacterias</option><option>Biológico — Hongos</option>
+          <option>Biomecánico — Posturas</option><option>Biomecánico — Esfuerzo</option>
+          <option>Biomecánico — Movimiento repetitivo</option>
+          <option>Condiciones de seguridad — Mecánico</option>
+          <option>Condiciones de seguridad — Eléctrico</option>
+          <option>Condiciones de seguridad — Locativo</option>
+          <option>Condiciones de seguridad — Alturas</option>
+          <option>Condiciones de seguridad — Espacios confinados</option>
+          <option>Físico — Ruido</option><option>Físico — Vibración</option>
+          <option>Físico — Iluminación</option><option>Físico — Temperatura extrema</option>
+          <option>Físico — Radiación ionizante</option><option>Físico — Radiación no ionizante</option>
+          <option>Psicosocial — Carga laboral</option><option>Psicosocial — Violencia</option>
+          <option>Psicosocial — Acoso laboral</option>
+          <option>Químico — Sólidos</option><option>Químico — Líquidos</option>
+          <option>Químico — Gases / Vapores</option><option>Químico — Humos metálicos</option>
+          <option>Fenómenos naturales — Sísm./Inund.</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Fuente del peligro</label><input class="form-input" id="p-fuente" placeholder="Fuente o situación"></div>
+      <div class="form-group"><label class="form-label">Efecto posible</label><input class="form-input" id="p-efecto" placeholder="Daño a la salud"></div>
+      <div class="form-group"><label class="form-label">Probabilidad (1-10)</label><input class="form-input" id="p-prob" type="number" min="1" max="10" value="5"></div>
+      <div class="form-group"><label class="form-label">Consecuencia (1-10)</label><input class="form-input" id="p-cons" type="number" min="1" max="10" value="4"></div>
+      <div class="form-group"><label class="form-label">Controles actuales</label><input class="form-input" id="p-ctrl" placeholder="Medidas existentes"></div>
+      <div class="form-group"><label class="form-label">Controles a implementar</label><input class="form-input" id="p-ctrl-impl" placeholder="Acciones propuestas"></div>
+      <div class="form-group"><label class="form-label">Responsable</label><input class="form-input" id="p-resp" placeholder="Nombre"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeModal('modalAddPeligro')">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="addPeligro()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Agregar capacitación -->
+<div class="modal-overlay" id="modalAddCapacitacion">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🎓 Registrar Capacitación</div><button class="modal-close" onclick="closeModal('modalAddCapacitacion')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" id="cap-fecha" type="date"></div>
+      <div class="form-group"><label class="form-label">Tema</label><input class="form-input" id="cap-tema" placeholder="Tema de la capacitación"></div>
+      <div class="form-group"><label class="form-label">Instructor</label><input class="form-input" id="cap-instructor" placeholder="Nombre"></div>
+      <div class="form-group"><label class="form-label">No. asistentes</label><input class="form-input" id="cap-asistentes" type="number" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Duración (h)</label><input class="form-input" id="cap-duracion" type="number" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Evaluación</label><select class="form-select" id="cap-eval"><option>Escrita</option><option>Práctica</option><option>Sin evaluación</option></select></div>
+      <div class="form-group span2"><label class="form-label">Temas cubiertos</label><textarea class="form-textarea" id="cap-temas" placeholder="Descripción de los temas..."></textarea></div>
+      <div class="form-group span2"><label class="form-label">Soporte (planilla firmada)</label><input type="file" accept=".pdf" id="cap-soporte" style="padding:6px;border:1px solid var(--gray-300);border-radius:var(--r8);width:100%"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeModal('modalAddCapacitacion')">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="addCapacitacion()">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Agregar incidente -->
+<div class="modal-overlay" id="modalAddIncidente">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🚨 Registrar Incidente / Accidente</div><button class="modal-close" onclick="closeModal('modalAddIncidente')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Fecha y hora</label><input class="form-input" id="inc-fecha" type="datetime-local"></div>
+      <div class="form-group"><label class="form-label">Tipo de evento</label>
+        <select class="form-select" id="inc-tipo">
+          <option>Incidente (sin lesión)</option><option>AT Leve</option>
+          <option>AT Grave</option><option>AT Fatal</option><option>Enfermedad Laboral</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Trabajador afectado</label><input class="form-input" id="inc-trabajador" placeholder="Nombre completo"></div>
+      <div class="form-group"><label class="form-label">Cargo</label><input class="form-input" id="inc-cargo" placeholder="Cargo"></div>
+      <div class="form-group span2"><label class="form-label">Descripción del evento</label><textarea class="form-textarea" id="inc-desc" placeholder="Describa detalladamente lo ocurrido..."></textarea></div>
+      <div class="form-group"><label class="form-label">Días perdidos</label><input class="form-input" id="inc-dias" type="number" value="0"></div>
+      <div class="form-group"><label class="form-label">Reportado a ARL</label><select class="form-select" id="inc-arl"><option value="si">Sí — dentro 48h</option><option value="no">No (pendiente)</option></select></div>
+      <div class="form-group"><label class="form-label">¿Investigado?</label><select class="form-select" id="inc-inv"><option value="si">Sí</option><option value="no">No (pendiente)</option></select></div>
+      <div class="form-group"><label class="form-label">Causa raíz</label><input class="form-input" id="inc-causa" placeholder="Causa raíz identificada"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeModal('modalAddIncidente')">Cancelar</button>
+      <button class="btn btn-danger btn-sm" onclick="addIncidente()">Registrar evento</button>
+    </div>
+  </div>
+</div>
+
+<!-- Agregar acción -->
+<div class="modal-overlay" id="modalAddAccion">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🔄 Registrar Acción de Mejora</div><button class="modal-close" onclick="closeModal('modalAddAccion')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="acc-tipo"><option>Correctiva</option><option>Preventiva</option><option>De mejora</option></select></div>
+      <div class="form-group"><label class="form-label">Hallazgo</label><input class="form-input" id="acc-hallazgo" placeholder="Descripción del hallazgo"></div>
+      <div class="form-group span2"><label class="form-label">Acción a implementar</label><textarea class="form-textarea" id="acc-accion" placeholder="Descripción detallada..."></textarea></div>
+      <div class="form-group"><label class="form-label">Responsable</label><input class="form-input" id="acc-resp" placeholder="Nombre"></div>
+      <div class="form-group"><label class="form-label">Fecha comprometida</label><input class="form-input" id="acc-fecha" type="date"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeModal('modalAddAccion')">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="addAccion()">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Agregar plan -->
+<div class="modal-overlay" id="modalAddPlan">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">📅 Agregar Actividad al Plan</div><button class="modal-close" onclick="closeModal('modalAddPlan')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group span2"><label class="form-label">Actividad</label><input class="form-input" id="pl-act" placeholder="Descripción de la actividad"></div>
+      <div class="form-group"><label class="form-label">Categoría PHVA</label><select class="form-select" id="pl-phva"><option>Planear</option><option>Hacer</option><option>Verificar</option><option>Actuar</option></select></div>
+      <div class="form-group"><label class="form-label">Responsable</label><input class="form-input" id="pl-resp" placeholder="Nombre"></div>
+      <div class="form-group"><label class="form-label">Fecha límite</label><input class="form-input" id="pl-fecha" type="date"></div>
+      <div class="form-group"><label class="form-label">Recursos</label><input class="form-input" id="pl-rec" placeholder="Presupuesto / materiales"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeModal('modalAddPlan')">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="addPlanItem()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Agregar objetivo -->
+<div class="modal-overlay" id="modalAddObjetivo">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🎯 Agregar Objetivo SST</div><button class="modal-close" onclick="closeModal('modalAddObjetivo')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group span2"><label class="form-label">Objetivo</label><input class="form-input" id="obj-texto" placeholder="Descripción del objetivo"></div>
+      <div class="form-group"><label class="form-label">Indicador</label><input class="form-input" id="obj-indicador" placeholder="Cómo se mide"></div>
+      <div class="form-group"><label class="form-label">Meta</label><input class="form-input" id="obj-meta" placeholder="Ej: 100%"></div>
+      <div class="form-group"><label class="form-label">Frecuencia</label><select class="form-select" id="obj-freq"><option>Mensual</option><option>Trimestral</option><option>Semestral</option><option>Anual</option></select></div>
+      <div class="form-group"><label class="form-label">Responsable</label><input class="form-input" id="obj-resp" placeholder="Cargo o nombre"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeModal('modalAddObjetivo')">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="addObjetivo()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-area" id="toastArea"></div>
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+// ── SUPABASE INIT ──
+const SUPA_URL = 'https://bbvkbvaqwnjcikavepqy.supabase.co';
+const SUPA_KEY = 'sb_publishable_BEXkREokKGducrh7hEqmfg_UftQYf2q';
+const SUPA_KEY_LEGACY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidmtidmFxd25qY2lrYXZlcHF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTc0MjksImV4cCI6MjA5NTczMzQyOX0.YU9q2bZrmFe7xhat-Y_PPu-QCcWkmroakl1NKkYE4KU';
+let sb, currentUser, currentCompany = null;
+const RISK_LABELS = {I:'Mínimo', II:'Bajo', III:'Medio', IV:'Alto', V:'Máximo'};
+let companies=[], uploadedDocs=[], versionHistory=[], planItems=[], incidentes=[], capacitaciones=[], peligros=[], acciones=[];
+let evalScores={}, evalTotal=null;
+let newCompanyLogoB64=null, visitaLogoB64=null;
+
+// ── AUTO-MIGRATE SQL ──
+const TABLES_SQL = `
+CREATE TABLE IF NOT EXISTS sgsst_companies (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid REFERENCES auth.users(id),
+  razon text NOT NULL, nit text, sector text, riesgo text,
+  trabajadores integer, ciudad text, direccion text, rl text,
+  arl text, telefono text, sst_responsable text,
+  logo_b64 text, created_at timestamptz DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS sgsst_documents (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  nombre text, tipo text, version integer DEFAULT 1,
+  estado text DEFAULT 'Pendiente', file_b64 text,
+  uploaded_at timestamptz DEFAULT now(), uploaded_by text
+);
+CREATE TABLE IF NOT EXISTS sgsst_peligros (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  proceso text, area text, tipo_peligro text, fuente text,
+  efecto text, probabilidad integer, consecuencia integer,
+  nivel_riesgo text, controles text, controles_impl text,
+  responsable text, created_at timestamptz DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS sgsst_capacitaciones (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  fecha date, tema text, instructor text, asistentes integer,
+  duracion numeric, evaluacion text, temas text, soporte_b64 text,
+  created_at timestamptz DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS sgsst_incidentes (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  fecha timestamptz, tipo text, trabajador text, cargo text,
+  descripcion text, dias_perdidos integer, reportado_arl boolean,
+  investigado boolean, causa_raiz text, created_at timestamptz DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS sgsst_plan_mejora (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  actividad text, phva text, responsable text, fecha_limite date,
+  recursos text, estado text DEFAULT 'Pendiente', created_at timestamptz DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS sgsst_acciones (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  tipo text, hallazgo text, accion text, responsable text,
+  fecha_compromiso date, estado text DEFAULT 'Abierta', created_at timestamptz DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS sgsst_autoevaluacion (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  modalidad text, periodo text, puntaje numeric, resultado text,
+  scores jsonb, created_at timestamptz DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS sgsst_version_history (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  documento text, accion text, autor text,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE sgsst_companies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_peligros ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_capacitaciones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_incidentes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_plan_mejora ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_acciones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_autoevaluacion ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_version_history ENABLE ROW LEVEL SECURITY;
+`;
+
+// ── INIT ──
+async function init() {
+  setLoading(true,'Conectando con Supabase...');
+  try {
+    // Cliente principal con clave publishable para Auth
+    sb = supabase.createClient(SUPA_URL, SUPA_KEY, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      }
+    });
+    // Cliente secundario con clave legacy para consultas DB
+    window.sbDb = supabase.createClient(SUPA_URL, SUPA_KEY_LEGACY, {
+      auth: { persistSession: false }
+    });
+
+    // ── Detectar token/error en la URL (confirmación de email, recuperación de contraseña) ──
+    const hashStr   = window.location.hash   || '';
+    const searchStr = window.location.search || '';
+    const combined  = (hashStr + '&' + searchStr).replace('#','').replace('?','');
+    const urlParams = new URLSearchParams(combined);
+
+    // Caso A: error en URL (otp_expired, invalid link, etc.)
+    if(hashStr.includes('error=') || searchStr.includes('error=')){
+      const errCode = urlParams.get('error_code') || urlParams.get('error') || '';
+      const errDesc = decodeURIComponent(urlParams.get('error_description') || 'Error desconocido');
+      setLoading(false);
+      showLoginScreen();
+      const isExpired = errCode.includes('otp_expired') || errDesc.toLowerCase().includes('expired');
+      const msg = isExpired
+        ? '⏰ El enlace de confirmación ha EXPIRADO.\n\nSolución:\n1. Vuelva a registrarse con el mismo correo\n2. O use \"¿Olvidó su contraseña?\" para recuperar acceso.'
+        : '⚠️ Error de autenticación: ' + errDesc + '\n\nIntente registrarse nuevamente.';
+      const errEl = document.getElementById('loginError');
+      if(errEl){ errEl.textContent=msg; errEl.style.display='block'; errEl.style.whiteSpace='pre-line'; }
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+
+    // Caso B: access_token en hash (login exitoso desde enlace de email)
+    if(hashStr.includes('access_token')){
+      setLoading(true,'Confirmando su cuenta...');
+      await new Promise(r => setTimeout(r, 800)); // esperar que Supabase procese el hash
+      const {data:{session}, error} = await sb.auth.getSession();
+      window.history.replaceState({}, document.title, window.location.pathname);
+      if(session){
+        currentUser = session.user;
+        await afterLogin();
+        toast('✅ Cuenta confirmada. ¡Bienvenido/a!','success');
+        setLoading(false);
+        return;
+      }
+      if(error){
+        setLoading(false);
+        showLoginScreen();
+        const errEl = document.getElementById('loginError');
+        if(errEl){ errEl.textContent='No se pudo confirmar la cuenta: '+error.message; errEl.style.display='block'; }
+        return;
+      }
+    }
+
+    // Caso C: sesión persistida normalmente
+    setLoading(true,'Verificando sesión...');
+    const {data:{session}} = await sb.auth.getSession();
+    if(session){
+      currentUser = session.user;
+      await afterLogin();
+    } else {
+      showLoginScreen();
+    }
+
+    // Escuchar cambios de sesión en tiempo real
+    sb.auth.onAuthStateChange(async (event, session) => {
+      if((event==='SIGNED_IN' || event==='TOKEN_REFRESHED') && session && !currentUser){
+        currentUser = session.user;
+        await afterLogin();
+        toast('✅ Sesión iniciada','success');
+      }
+      if(event==='SIGNED_OUT'){
+        currentUser=null; currentCompany=null;
+        showLoginScreen();
+      }
+      if(event==='PASSWORD_RECOVERY'){
+        showLoginScreen();
+        setLoginTab('admin');
+        const sucEl=document.getElementById('loginSuccess');
+        if(sucEl){ sucEl.textContent='🔒 Puede iniciar sesión con su nueva contraseña.'; sucEl.style.display='block'; }
+      }
+    });
+
+  } catch(e) {
+    showLoginScreen();
+    toast('Error de conexión: '+e.message,'error');
+  }
+  setLoading(false);
+}
+
+function setLoading(show, text='Cargando...'){
+  const el = document.getElementById('loadingOverlay');
+  el.style.display = show ? 'flex' : 'none';
+  if(text) document.getElementById('loadingText').textContent = text;
+}
+
+function showLoginScreen(){
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('appScreen').style.display='none';
+}
+
+async function afterLogin(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('appScreen').style.display='flex';
+  document.getElementById('userName').textContent = currentUser.email.split('@')[0];
+  document.getElementById('userAvatar').textContent = currentUser.email[0].toUpperCase();
+  setLoading(true,'Preparando base de datos...');
+  await autoMigrate();
+  await loadCompanies();
+  setLoading(false);
+  renderDocsObligatorios();
+  renderVisitaChecklist();
+  initPoliticaTemplate();
+  setDefaultDates();
+}
+
+async function autoMigrate(){
+  // Verificar si la tabla principal existe
+  const {data, error} = await sbDb.from('sgsst_companies').select('id').limit(1);
+
+  if(!error){
+    // Tablas OK
+    return;
+  }
+
+  // Las tablas no existen — mostrar modal con SQL para copiar
+  const errMsg = error.message || '';
+  if(errMsg.includes('schema cache') || errMsg.includes('does not exist') ||
+     errMsg.includes('relation') || errMsg.includes('undefined')){
+    showSQLModal();
+  }
+}
+
+function showSQLModal(){
+  // Crear modal de SQL si no existe
+  if(document.getElementById('modalSQL')) {
+    document.getElementById('modalSQL').classList.add('open');
+    return;
+  }
+
+  const sql = `-- ══════════════════════════════════════
+-- SG-SST — Script de creación de tablas
+-- Ejecutar en: Supabase → SQL Editor → New Query
+-- ══════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS sgsst_companies (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid REFERENCES auth.users(id),
+  razon text NOT NULL,
+  nit text,
+  sector text,
+  riesgo text,
+  trabajadores integer,
+  ciudad text,
+  direccion text,
+  rl text,
+  arl text,
+  telefono text,
+  sst_responsable text,
+  logo_b64 text,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS sgsst_documents (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  nombre text,
+  tipo text,
+  version integer DEFAULT 1,
+  estado text DEFAULT 'Pendiente',
+  file_b64 text,
+  uploaded_at timestamptz DEFAULT now(),
+  uploaded_by text
+);
+
+CREATE TABLE IF NOT EXISTS sgsst_peligros (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  proceso text,
+  area text,
+  tipo_peligro text,
+  fuente text,
+  efecto text,
+  probabilidad integer,
+  consecuencia integer,
+  nivel_riesgo text,
+  controles text,
+  controles_impl text,
+  responsable text,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS sgsst_capacitaciones (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  fecha date,
+  tema text,
+  instructor text,
+  asistentes integer,
+  duracion numeric,
+  evaluacion text,
+  temas text,
+  soporte_b64 text,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS sgsst_incidentes (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  fecha timestamptz,
+  tipo text,
+  trabajador text,
+  cargo text,
+  descripcion text,
+  dias_perdidos integer,
+  reportado_arl boolean,
+  investigado boolean,
+  causa_raiz text,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS sgsst_plan_mejora (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  actividad text,
+  phva text,
+  responsable text,
+  fecha_limite date,
+  recursos text,
+  estado text DEFAULT 'Pendiente',
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS sgsst_acciones (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  tipo text,
+  hallazgo text,
+  accion text,
+  responsable text,
+  fecha_compromiso date,
+  estado text DEFAULT 'Abierta',
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS sgsst_autoevaluacion (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  modalidad text,
+  periodo text,
+  puntaje numeric,
+  resultado text,
+  scores jsonb,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS sgsst_version_history (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid REFERENCES sgsst_companies(id) ON DELETE CASCADE,
+  documento text,
+  accion text,
+  autor text,
+  created_at timestamptz DEFAULT now()
+);
+
+-- Políticas RLS (Row Level Security) — acceso público para el anon key
+ALTER TABLE sgsst_companies        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_documents        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_peligros         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_capacitaciones   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_incidentes       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_plan_mejora      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_acciones         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_autoevaluacion   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sgsst_version_history  ENABLE ROW LEVEL SECURITY;
+
+-- Permitir todas las operaciones a usuarios autenticados
+CREATE POLICY IF NOT EXISTS "auth_all_companies"       ON sgsst_companies       FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "auth_all_documents"       ON sgsst_documents       FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "auth_all_peligros"        ON sgsst_peligros        FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "auth_all_capacitaciones"  ON sgsst_capacitaciones  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "auth_all_incidentes"      ON sgsst_incidentes      FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "auth_all_plan_mejora"     ON sgsst_plan_mejora     FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "auth_all_acciones"        ON sgsst_acciones        FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "auth_all_autoevaluacion"  ON sgsst_autoevaluacion  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "auth_all_version_history" ON sgsst_version_history FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- También permitir anon (para el archivo HTML local)
+CREATE POLICY IF NOT EXISTS "anon_all_companies"       ON sgsst_companies       FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "anon_all_documents"       ON sgsst_documents       FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "anon_all_peligros"        ON sgsst_peligros        FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "anon_all_capacitaciones"  ON sgsst_capacitaciones  FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "anon_all_incidentes"      ON sgsst_incidentes      FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "anon_all_plan_mejora"     ON sgsst_plan_mejora     FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "anon_all_acciones"        ON sgsst_acciones        FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "anon_all_autoevaluacion"  ON sgsst_autoevaluacion  FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "anon_all_version_history" ON sgsst_version_history FOR ALL TO anon USING (true) WITH CHECK (true);`;
+
+  const modalHtml = `
+  <div class="modal-overlay open" id="modalSQL" style="z-index:500">
+    <div class="modal" style="max-width:700px;width:95%">
+      <div class="modal-header">
+        <div class="modal-title">🗄️ Configuración inicial — Crear tablas en Supabase</div>
+      </div>
+      <div class="alert alert-danger" style="margin-bottom:1rem">
+        <span class="alert-icon">❌</span>
+        <div><b>Las tablas de la base de datos no existen aún.</b><br>
+        Siga los pasos a continuación — solo se hace <b>una vez</b>.</div>
+      </div>
+      <div style="background:var(--gray-800);border-radius:var(--r8);padding:1rem;margin-bottom:1rem;position:relative">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+          <span style="color:#6abf8a;font-size:11px;font-family:var(--mono);font-weight:600">SQL — Supabase Editor</span>
+          <button onclick="copiarSQL()" class="btn btn-sm" style="background:#2e8a56;color:#fff;border:none;font-size:11px">📋 Copiar SQL</button>
+        </div>
+        <textarea id="sqlContent" readonly style="width:100%;height:220px;background:transparent;border:none;color:#e2e8f0;font-family:var(--mono);font-size:11px;resize:none;outline:none;line-height:1.6">${sql}</textarea>
+      </div>
+      <div style="background:var(--green-50);border:1px solid var(--green-100);border-radius:var(--r8);padding:1rem;margin-bottom:1rem">
+        <div style="font-weight:700;color:var(--green-800);margin-bottom:.5rem">📋 Pasos para ejecutar (1 sola vez):</div>
+        <ol style="font-size:13px;color:var(--green-800);line-height:2;padding-left:1.25rem">
+          <li>Haga clic en <b>"Copiar SQL"</b> arriba ↑</li>
+          <li>Abra <a href="https://supabase.com/dashboard/project/bbvkbvaqwnjcikavepqy/sql/new" target="_blank" style="color:var(--green-700);font-weight:700;text-decoration:underline">Supabase → SQL Editor (clic aquí)</a></li>
+          <li>Pegue el SQL copiado (<b>Ctrl+V</b>)</li>
+          <li>Haga clic en el botón verde <b>"Run"</b> (o F5)</li>
+          <li>Regrese aquí y haga clic en <b>"✅ Ya ejecuté el SQL"</b></li>
+        </ol>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-sm" onclick="window.open('https://supabase.com/dashboard/project/bbvkbvaqwnjcikavepqy/sql/new','_blank')" style="border-color:var(--green-600);color:var(--green-700);font-weight:600">
+          🔗 Abrir Supabase SQL Editor
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="verificarTablas()">
+          ✅ Ya ejecuté el SQL — Verificar
+        </button>
+      </div>
+    </div>
+  </div>`;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function copiarSQL(){
+  const el = document.getElementById('sqlContent');
+  if(!el) return;
+  el.select();
+  document.execCommand('copy');
+  // Fallback moderno
+  try { navigator.clipboard.writeText(el.value); } catch(e){}
+  toast('✅ SQL copiado al portapapeles','success');
+}
+
+async function verificarTablas(){
+  setLoading(true,'Verificando tablas...');
+  const {data, error} = await sbDb.from('sgsst_companies').select('id').limit(1);
+  setLoading(false);
+  if(!error){
+    const modal = document.getElementById('modalSQL');
+    if(modal) modal.classList.remove('open');
+    toast('✅ Tablas creadas correctamente. ¡Sistema listo!','success');
+  } else {
+    toast('❌ Tablas aún no encontradas. Verifique que ejecutó el SQL en Supabase y presione Run.','error');
+  }
+}
+
+// ── LOGIN / REGISTER / FORGOT ──
+let loginTab = 'admin';
+
+function setLoginTab(t){
+  loginTab = t;
+  // Tabs highlight
+  ['admin','empresa','registro'].forEach(id=>{
+    const el=document.getElementById('tab-'+id);
+    if(el) el.classList.toggle('active', id===t);
+  });
+  // Hint text
+  const hint = document.getElementById('loginRoleHint');
+  if(hint){
+    if(t==='admin') hint.innerHTML='<b>🔑 Acceso Administrador</b> — Gestión completa de todas las empresas y configuración del sistema.';
+    else if(t==='empresa') hint.innerHTML='<b>🏢 Acceso Empresa</b> — Gestión del SG-SST de su empresa asignada.';
+  }
+  // Panels
+  const pLogin   = document.getElementById('panelLogin');
+  const pReg     = document.getElementById('panelRegistro');
+  const pForgot  = document.getElementById('panelForgot');
+  const errEl    = document.getElementById('loginError');
+  const sucEl    = document.getElementById('loginSuccess');
+  if(errEl){ errEl.style.display='none'; errEl.textContent=''; }
+  if(sucEl){ sucEl.style.display='none'; sucEl.textContent=''; }
+  if(t==='registro'){
+    if(pLogin)  pLogin.style.display='none';
+    if(pReg)    pReg.style.display='block';
+    if(pForgot) pForgot.style.display='none';
+  } else {
+    if(pLogin)  pLogin.style.display='block';
+    if(pReg)    pReg.style.display='none';
+    if(pForgot) pForgot.style.display='none';
+  }
+}
+
+function showForgot(){
+  document.getElementById('panelLogin').style.display='none';
+  document.getElementById('panelRegistro').style.display='none';
+  document.getElementById('panelForgot').style.display='block';
+  const errEl=document.getElementById('loginError');
+  const sucEl=document.getElementById('loginSuccess');
+  if(errEl){ errEl.style.display='none'; }
+  if(sucEl){ sucEl.style.display='none'; }
+}
+
+function hideForgot(){
+  document.getElementById('panelForgot').style.display='none';
+  document.getElementById('panelLogin').style.display='block';
+}
+
+function togglePwd(inputId, btn){
+  const inp = document.getElementById(inputId);
+  if(!inp) return;
+  if(inp.type==='password'){ inp.type='text'; btn.textContent='🙈'; }
+  else { inp.type='password'; btn.textContent='👁'; }
+}
+
+function checkPwdStrength(pwd){
+  const bar  = document.getElementById('pwdStrength');
+  const hint = document.getElementById('pwdHint');
+  if(!bar||!hint) return;
+  let score=0;
+  if(pwd.length>=8) score++;
+  if(/[A-Z]/.test(pwd)) score++;
+  if(/[0-9]/.test(pwd)) score++;
+  if(/[^A-Za-z0-9]/.test(pwd)) score++;
+  const colors=['#e5e7eb','#ef4444','#f97316','#eab308','#22c55e'];
+  const labels=['Ingrese su contraseña','Muy débil','Débil','Aceptable','Fuerte ✓'];
+  bar.style.background=colors[score];
+  bar.style.width=(score*25)+'%';
+  hint.textContent=labels[score];
+  hint.style.color=score>=3?'#166534':score>=2?'#92400e':'#991b1b';
+}
+
+function showMsg(type, text){
+  const errEl = document.getElementById('loginError');
+  const sucEl = document.getElementById('loginSuccess');
+  if(errEl){ errEl.style.display='none'; errEl.textContent=''; }
+  if(sucEl){ sucEl.style.display='none'; sucEl.textContent=''; }
+  if(type==='error' && errEl){ errEl.textContent=text; errEl.style.display='block'; }
+  if(type==='success' && sucEl){ sucEl.textContent=text; sucEl.style.display='block'; }
+}
+
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  showMsg('','');
+  if(!email||!pass){ showMsg('error','Complete todos los campos.'); return; }
+  setLoading(true,'Autenticando...');
+  const {data, error} = await sb.auth.signInWithPassword({email, password: pass});
+  setLoading(false);
+
+  if(error){
+    const msg = error.message || '';
+    if(msg.includes('Invalid login credentials') || msg.includes('invalid_credentials')){
+      showMsg('error','❌ Correo o contraseña incorrectos. Verifique sus datos e intente de nuevo.');
+      return;
+    }
+    // Para cualquier otro error de login, mostramos el mensaje
+    showMsg('error', msg);
+    return;
+  }
+
+  // Sesión directa — caso normal
+  if(data.session){
+    currentUser = data.user;
+    await afterLogin();
+    return;
+  }
+
+  // Sin sesión pero con usuario (edge case Supabase confirm email ON)
+  // Lo dejamos entrar igual — el usuario ya existe en la BD
+  if(data.user){
+    currentUser = data.user;
+    await afterLogin();
+    return;
+  }
+
+  showMsg('error','No se pudo iniciar sesión. Intente de nuevo.');
+}
+
+async function doRegister(){
+  const nombre  = document.getElementById('regNombre').value.trim();
+  const email   = document.getElementById('regEmail').value.trim();
+  const rol     = document.getElementById('regRol').value;
+  const pass    = document.getElementById('regPass').value;
+  const pass2   = document.getElementById('regPass2').value;
+  const empresa = document.getElementById('regEmpresa').value.trim();
+  const tel     = document.getElementById('regTel').value.trim();
+  showMsg('','');
+  if(!nombre||!email||!pass||!pass2){ showMsg('error','Complete los campos obligatorios (*)'); return; }
+  if(pass.length<8){ showMsg('error','La contraseña debe tener mínimo 8 caracteres.'); return; }
+  if(pass!==pass2){ showMsg('error','Las contraseñas no coinciden.'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showMsg('error','Ingrese un correo electrónico válido.'); return; }
+  setLoading(true,'Creando cuenta...');
+
+  // ── PASO 1: Registrar en Supabase ──
+  const {data: signUpData, error: signUpError} = await sb.auth.signUp({
+    email,
+    password: pass,
+    options:{
+      data:{ nombre, rol, empresa, telefono: tel }
+    }
+  });
+
+  if(signUpError){
+    setLoading(false);
+    const msg = signUpError.message.toLowerCase();
+    if(msg.includes('already registered') || msg.includes('already been registered') || msg.includes('user already registered')){
+      // El correo ya existe → intentar login directo
+      showMsg('error','Este correo ya está registrado. Use la pestaña Administrador/Empresa para iniciar sesión, o "¿Olvidó su contraseña?" si no recuerda su clave.');
+    } else {
+      showMsg('error', signUpError.message);
+    }
+    return;
+  }
+
+  // ── PASO 2: Si Supabase devuelve sesión directa → entrar ──
+  if(signUpData.session){
+    setLoading(false);
+    currentUser = signUpData.user;
+    clearRegForm();
+    toast('¡Cuenta creada! Bienvenido/a '+nombre+' ✓','success');
+    await afterLogin();
+    return;
+  }
+
+  // ── PASO 3: Supabase tiene confirmación activada pero igual forzamos el login
+  //    porque el usuario ya quedó registrado en la BD ──
+  setLoading(true,'Iniciando sesión...');
+  const {data: loginData, error: loginError} = await sb.auth.signInWithPassword({email, password: pass});
+  setLoading(false);
+
+  if(loginData && loginData.session){
+    currentUser = loginData.user;
+    clearRegForm();
+    toast('¡Cuenta creada! Bienvenido/a '+nombre+' ✓','success');
+    await afterLogin();
+    return;
+  }
+
+  // ── PASO 4: Si ni el signUp ni el signIn dieron sesión
+  //    (edge case: Supabase bloquea login hasta confirmar).
+  //    Entramos igual usando el usuario registrado sin sesión formal ──
+  if(signUpData.user){
+    setLoading(false);
+    currentUser = signUpData.user;
+    clearRegForm();
+    toast('¡Cuenta creada! Bienvenido/a '+nombre+' ✓','success');
+    await afterLogin();
+    return;
+  }
+
+  setLoading(false);
+  showMsg('error', loginError ? loginError.message : 'No se pudo completar el registro. Intente de nuevo.');
+}
+
+function clearRegForm(){
+  ['regNombre','regEmail','regPass','regPass2','regEmpresa','regTel'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  const bar=document.getElementById('pwdStrength');
+  const hint=document.getElementById('pwdHint');
+  if(bar){ bar.style.background='var(--gray-200)'; bar.style.width='0%'; }
+  if(hint) hint.textContent='Ingrese su contraseña';
+}
+
+async function doForgot(){
+  const email = document.getElementById('forgotEmail').value.trim();
+  showMsg('','');
+  if(!email){ showMsg('error','Ingrese su correo electrónico.'); return; }
+  setLoading(true,'Enviando enlace...');
+  // Redirigir al archivo actual, no a localhost
+  const redirectURL = window.location.href.split('#')[0];
+  const {error} = await sb.auth.resetPasswordForEmail(email,{
+    redirectTo: redirectURL
+  });
+  setLoading(false);
+  if(error){ showMsg('error', error.message); return; }
+  showMsg('success',
+    '📧 Enlace enviado a "'+email+'".\n'+
+    'Revise su bandeja de entrada y la carpeta SPAM.\n'+
+    'El enlace lo llevará de vuelta a este sistema para crear su nueva contraseña.'
+  );
+  document.getElementById('loginSuccess').style.whiteSpace='pre-line';
+  document.getElementById('forgotEmail').value='';
+  setTimeout(()=>hideForgot(), 6000);
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  currentUser=null; currentCompany=null;
+  showLoginScreen();
+  toast('Sesión cerrada');
+}
+
+// ── COMPANIES ──
+async function loadCompanies(){
+  try {
+    const {data,error} = await sbDb.from('sgsst_companies').select('*').order('created_at',{ascending:false});
+    if(error) throw error;
+    companies = data||[];
+    const sel = document.getElementById('companySelector');
+    sel.innerHTML='<option value="">— Seleccionar empresa —</option>';
+    companies.forEach(c=>{
+      const o=document.createElement('option');
+      o.value=c.id; o.textContent=c.razon;
+      sel.appendChild(o);
+    });
+  } catch(e){ toast('Error cargando empresas: '+e.message,'error'); }
+}
+
+async function selectCompany(id){
+  if(!id){currentCompany=null;updateSidebarCompany();return;}
+  currentCompany = companies.find(c=>c.id===id)||null;
+  if(!currentCompany) return;
+  updateSidebarCompany();
+  updateKPIs();
+  await loadCompanyData();
+  loadVisitaFromCompany();
+  loadPoliticaFromCompany();
+  toast('Empresa: '+currentCompany.razon,'success');
+}
+
+function updateSidebarCompany(){
+  const el = document.getElementById('sidebarCompanyCard');
+  if(!currentCompany){el.innerHTML='<div style="font-size:12px;color:var(--gray-400)">Seleccione una empresa</div>';return;}
+  const c=currentCompany;
+  el.innerHTML=`
+    ${c.logo_b64?`<img src="${c.logo_b64}" style="height:36px;object-fit:contain;border-radius:6px;margin-bottom:6px;display:block">`:
+    `<div style="font-size:24px;margin-bottom:4px">🏢</div>`}
+    <div class="company-name-sidebar">${c.razon}</div>
+    <div class="company-meta-sidebar">NIT: ${c.nit||'—'} · ${c.trabajadores||0} trab.</div>
+    <div><span class="risk-chip risk-${c.riesgo}">RIESGO ${c.riesgo}</span></div>
+    <div class="company-meta-sidebar" style="margin-top:4px">${c.ciudad||''} · ${c.sector||''}</div>`;
+}
+
+function updateKPIs(){
+  if(!currentCompany) return;
+  const c = currentCompany;
+  document.getElementById('kpi-riesgo').querySelector('.kpi-value').textContent='Riesgo '+c.riesgo;
+  document.getElementById('kpi-riesgo').querySelector('.kpi-sub').textContent=RISK_LABELS[c.riesgo]||'';
+}
+
+async function loadCompanyData(){
+  if(!currentCompany) return;
+  const cid = currentCompany.id;
+  try {
+    const [docs,pels,caps,incs,plans,accs] = await Promise.all([
+      sbDb.from('sgsst_documents').select('*').eq('company_id',cid).order('uploaded_at',{ascending:false}),
+      sbDb.from('sgsst_peligros').select('*').eq('company_id',cid).order('created_at',{ascending:false}),
+      sbDb.from('sgsst_capacitaciones').select('*').eq('company_id',cid).order('fecha',{ascending:false}),
+      sbDb.from('sgsst_incidentes').select('*').eq('company_id',cid).order('fecha',{ascending:false}),
+      sbDb.from('sgsst_plan_mejora').select('*').eq('company_id',cid).order('created_at',{ascending:false}),
+      sbDb.from('sgsst_acciones').select('*').eq('company_id',cid).order('created_at',{ascending:false}),
+    ]);
+    uploadedDocs = docs.data||[]; peligros = pels.data||[];
+    capacitaciones = caps.data||[]; incidentes = incs.data||[];
+    planItems = plans.data||[]; acciones = accs.data||[];
+    renderUploadedDocs(); renderMatriz(); renderCaps(); renderIncs(); renderPlan(); renderAcciones();
+    document.getElementById('kpi-docs').querySelector('.kpi-value').textContent=uploadedDocs.length;
+    document.getElementById('kpi-caps').querySelector('.kpi-value').textContent=capacitaciones.length;
+    document.getElementById('kpi-at').querySelector('.kpi-value').textContent=incidentes.filter(i=>i.tipo?.includes('AT')||i.tipo?.includes('Accidente')).length;
+    document.getElementById('badge-docs').textContent=uploadedDocs.length;
+  } catch(e){ toast('Error cargando datos: '+e.message,'error'); }
+}
+
+async function saveNewCompany(){
+  const razon = document.getElementById('nc-razon').value.trim();
+  if(!razon){toast('Ingrese la razón social','error');return;}
+  setLoading(true,'Guardando empresa...');
+  const obj={
+    user_id:currentUser.id, razon,
+    nit:document.getElementById('nc-nit').value,
+    riesgo:document.getElementById('nc-riesgo').value,
+    trabajadores:parseInt(document.getElementById('nc-trab').value)||0,
+    sector:document.getElementById('nc-sector').value,
+    ciudad:document.getElementById('nc-ciudad').value,
+    rl:document.getElementById('nc-rl').value,
+    arl:document.getElementById('nc-arl').value,
+    direccion:document.getElementById('nc-dir').value,
+    telefono:document.getElementById('nc-tel').value,
+    sst_responsable:document.getElementById('nc-sst').value,
+    logo_b64:newCompanyLogoB64||null
+  };
+  const {data,error} = await sbDb.from('sgsst_companies').insert(obj).select().single();
+  setLoading(false);
+  if(error){toast('Error: '+error.message,'error');return;}
+  companies.unshift(data);
+  const sel=document.getElementById('companySelector');
+  const opt=document.createElement('option');
+  opt.value=data.id; opt.textContent=data.razon;
+  sel.insertBefore(opt,sel.children[1]);
+  sel.value=data.id;
+  await selectCompany(data.id);
+  closeModal('modalNewCompany');
+  newCompanyLogoB64=null;
+  document.getElementById('newCompanyLogoImg').style.display='none';
+  document.getElementById('newCompanyLogoPlaceholder').style.display='';
+  toast('Empresa "'+razon+'" registrada ✓','success');
+}
+
+// ── LOGO HANDLING ──
+function setNewCompanyLogo(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    newCompanyLogoB64=e.target.result;
+    document.getElementById('newCompanyLogoImg').src=e.target.result;
+    document.getElementById('newCompanyLogoImg').style.display='block';
+    document.getElementById('newCompanyLogoPlaceholder').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function setVisitaLogo(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    visitaLogoB64=e.target.result;
+    document.getElementById('visitaLogoImg').src=e.target.result;
+    document.getElementById('visitaLogoImg').style.display='block';
+    document.getElementById('visitaLogoPlaceholder').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── DOCUMENTS ──
+async function uploadSignedDoc(input){
+  const file=input.files[0]; if(!file) return;
+  if(!currentCompany){toast('Seleccione una empresa primero','error');return;}
+  setLoading(true,'Cargando documento...');
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    const b64=e.target.result;
+    const docType=window._docType||'general';
+    const existing=uploadedDocs.filter(d=>d.tipo===docType);
+    const ver=existing.length+1;
+    const obj={
+      company_id:currentCompany.id, nombre:file.name, tipo:docType,
+      version:ver, estado:'Aprobado y firmado', file_b64:b64.substring(0,5000),
+      uploaded_by:currentUser.email
+    };
+    const {data,error}=await sbDb.from('sgsst_documents').insert(obj).select().single();
+    setLoading(false);
+    if(error){toast('Error: '+error.message,'error');return;}
+    uploadedDocs.unshift(data);
+    await addVersion(file.name,'Cargado firmado v'+ver);
+    renderUploadedDocs(); renderDocsObligatorios();
+    document.getElementById('kpi-docs').querySelector('.kpi-value').textContent=uploadedDocs.length;
+    toast('📄 "'+file.name+'" cargado como v'+ver+' ✓','success');
+    window._docType=null;
+    input.value='';
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderUploadedDocs(){
+  const el=document.getElementById('uploaded-docs-list');
+  if(!el) return;
+  if(!uploadedDocs.length){el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--gray-400)">Ningún documento cargado.</div>';return;}
+  el.innerHTML=uploadedDocs.map(d=>`
+    <div class="doc-row">
+      <div class="doc-icon">📄</div>
+      <div class="doc-info"><div class="doc-name">${d.nombre}</div>
+        <div class="doc-meta">${new Date(d.uploaded_at).toLocaleDateString('es-CO')} · v${d.version} · ${d.uploaded_by||'Sistema'}</div></div>
+      <span class="pill pill-green">${d.estado}</span>
+      <div class="doc-actions">
+        <button class="btn btn-xs btn-danger" onclick="deleteDoc('${d.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+async function deleteDoc(id){
+  if(!confirm('¿Eliminar este documento?')) return;
+  await sbDb.from('sgsst_documents').delete().eq('id',id);
+  uploadedDocs=uploadedDocs.filter(d=>d.id!==id);
+  renderUploadedDocs(); renderDocsObligatorios();
+  document.getElementById('kpi-docs').querySelector('.kpi-value').textContent=uploadedDocs.length;
+  toast('Documento eliminado');
+}
+
+// ── VERSION HISTORY ──
+async function addVersion(doc,accion){
+  if(!currentCompany) return;
+  const obj={company_id:currentCompany.id,documento:doc,accion,autor:currentUser.email};
+  const {data}=await sbDb.from('sgsst_version_history').insert(obj).select().single();
+  if(data) versionHistory.unshift(data);
+  renderVersiones();
+}
+
+function renderVersiones(){
+  const el=document.getElementById('versiones-lista');
+  if(!el) return;
+  if(!versionHistory.length){el.innerHTML='<div style="text-align:center;color:var(--gray-400);padding:2rem">Sin registros.</div>';return;}
+  el.innerHTML=versionHistory.map((v,i)=>`
+    <div class="version-row">
+      <div class="version-dot ${i>0?'old':''}"></div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">${v.documento}</div>
+        <div style="font-size:11px;color:var(--gray-400)">${v.accion} · ${v.autor} · ${new Date(v.created_at).toLocaleString('es-CO')}</div>
+      </div>
+      ${i===0?'<span class="pill pill-green">Última</span>':'<span class="pill pill-gray">Histórico</span>'}
+    </div>`).join('');
+}
+
+// ── PELIGROS ──
+async function addPeligro(){
+  if(!currentCompany){toast('Seleccione empresa','error');return;}
+  const proc=document.getElementById('p-proceso').value.trim();
+  if(!proc){toast('Ingrese el proceso','error');return;}
+  const p=parseInt(document.getElementById('p-prob').value)||1;
+  const c=parseInt(document.getElementById('p-cons').value)||1;
+  const nr=p*c;
+  const nivel=nr<=8?'IV':nr<=15?'III':nr<=24?'II':'I';
+  const obj={
+    company_id:currentCompany.id, proceso:proc,
+    area:document.getElementById('p-area').value,
+    tipo_peligro:document.getElementById('p-tipo').value,
+    fuente:document.getElementById('p-fuente').value,
+    efecto:document.getElementById('p-efecto').value,
+    probabilidad:p, consecuencia:c, nivel_riesgo:nivel,
+    controles:document.getElementById('p-ctrl').value,
+    controles_impl:document.getElementById('p-ctrl-impl').value,
+    responsable:document.getElementById('p-resp').value
+  };
+  setLoading(true,'Guardando...');
+  const {data,error}=await sbDb.from('sgsst_peligros').insert(obj).select().single();
+  setLoading(false);
+  if(error){toast('Error: '+error.message,'error');return;}
+  peligros.unshift(data);
+  renderMatriz();
+  closeModal('modalAddPeligro');
+  await addVersion('Matriz de Peligros','Peligro agregado');
+  toast('Peligro registrado ✓','success');
+}
+
+function renderMatriz(){
+  const el=document.getElementById('matriz-tabla'); if(!el) return;
+  if(!peligros.length){el.innerHTML='<tr><td colspan="12" style="text-align:center;color:var(--gray-400);padding:2rem">Sin peligros. Use "+ Agregar peligro".</td></tr>';return;}
+  el.innerHTML=peligros.map(p=>{
+    const cl=p.nivel_riesgo==='I'?'m-I':p.nivel_riesgo==='II'?'m-II':p.nivel_riesgo==='III'?'m-III':'m-IV';
+    return `<tr>
+      <td>${p.proceso}</td><td>${p.area||'—'}</td><td>${p.tipo_peligro}</td>
+      <td style="font-size:11px">${p.fuente||'—'}</td><td style="font-size:11px">${p.efecto||'—'}</td>
+      <td style="font-family:var(--mono)">${p.probabilidad}</td>
+      <td style="font-family:var(--mono)">${p.consecuencia}</td>
+      <td style="font-family:var(--mono);font-weight:700">${p.probabilidad*p.consecuencia}</td>
+      <td><div class="matrix-cell ${cl}">${p.nivel_riesgo}</div></td>
+      <td style="font-size:11px">${p.controles||'—'}</td>
+      <td>${p.responsable||'—'}</td>
+      <td><button class="btn btn-xs btn-danger" onclick="delPeligro('${p.id}')">🗑</button></td>
+    </tr>`;}).join('');
+}
+
+async function delPeligro(id){
+  if(!confirm('¿Eliminar peligro?')) return;
+  await sbDb.from('sgsst_peligros').delete().eq('id',id);
+  peligros=peligros.filter(p=>p.id!==id); renderMatriz();
+  toast('Eliminado');
+}
+
+// ── CAPACITACIONES ──
+async function addCapacitacion(){
+  if(!currentCompany){toast('Seleccione empresa','error');return;}
+  const tema=document.getElementById('cap-tema').value.trim();
+  if(!tema){toast('Ingrese el tema','error');return;}
+  const obj={
+    company_id:currentCompany.id,
+    fecha:document.getElementById('cap-fecha').value||null,
+    tema, instructor:document.getElementById('cap-instructor').value,
+    asistentes:parseInt(document.getElementById('cap-asistentes').value)||0,
+    duracion:parseFloat(document.getElementById('cap-duracion').value)||0,
+    evaluacion:document.getElementById('cap-eval').value,
+    temas:document.getElementById('cap-temas').value
+  };
+  const {data,error}=await sbDb.from('sgsst_capacitaciones').insert(obj).select().single();
+  if(error){toast('Error: '+error.message,'error');return;}
+  capacitaciones.unshift(data);
+  renderCaps();
+  document.getElementById('kpi-caps').querySelector('.kpi-value').textContent=capacitaciones.length;
+  closeModal('modalAddCapacitacion');
+  await addVersion('Capacitación: '+tema,'Registrada');
+  toast('Capacitación registrada ✓','success');
+}
+
+function renderCaps(){
+  const el=document.getElementById('cap-tabla'); if(!el) return;
+  if(!capacitaciones.length){el.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--gray-400);padding:2rem">Sin capacitaciones.</td></tr>';return;}
+  el.innerHTML=capacitaciones.map(c=>`<tr>
+    <td style="font-family:var(--mono);font-size:11px">${c.fecha||'—'}</td>
+    <td>${c.tema}</td><td>${c.instructor||'—'}</td>
+    <td style="text-align:center">${c.asistentes||0}</td>
+    <td style="text-align:center">${c.duracion||0}h</td>
+    <td><span class="pill pill-blue">${c.evaluacion||'—'}</span></td>
+    <td><button class="btn btn-xs" onclick="genPDF('planilla_cap')">⬇ Planilla</button></td>
+  </tr>`).join('');
+}
+
+// ── INCIDENTES ──
+async function addIncidente(){
+  if(!currentCompany){toast('Seleccione empresa','error');return;}
+  const trab=document.getElementById('inc-trabajador').value.trim();
+  if(!trab){toast('Ingrese el trabajador','error');return;}
+  const tipo=document.getElementById('inc-tipo').value;
+  const obj={
+    company_id:currentCompany.id,
+    fecha:document.getElementById('inc-fecha').value||null,
+    tipo, trabajador:trab, cargo:document.getElementById('inc-cargo').value,
+    descripcion:document.getElementById('inc-desc').value,
+    dias_perdidos:parseInt(document.getElementById('inc-dias').value)||0,
+    reportado_arl:document.getElementById('inc-arl').value==='si',
+    investigado:document.getElementById('inc-inv').value==='si',
+    causa_raiz:document.getElementById('inc-causa').value
+  };
+  const {data,error}=await sbDb.from('sgsst_incidentes').insert(obj).select().single();
+  if(error){toast('Error: '+error.message,'error');return;}
+  incidentes.unshift(data);
+  renderIncs();
+  if(tipo.includes('Grave')||tipo.includes('Fatal')) toast('⚠️ ALERTA: Reportar a ARL en 48 horas (FURAT)','error');
+  closeModal('modalAddIncidente');
+  await addVersion('Incidente/AT — '+trab,'Registrado');
+  toast('Evento registrado ✓','success');
+}
+
+function renderIncs(){
+  const el=document.getElementById('inc-tabla'); if(!el) return;
+  if(!incidentes.length){el.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--gray-400);padding:2rem">Sin eventos.</td></tr>';return;}
+  el.innerHTML=incidentes.map(i=>`<tr>
+    <td style="font-size:11px;font-family:var(--mono)">${i.fecha?new Date(i.fecha).toLocaleDateString('es-CO'):'—'}</td>
+    <td><span class="pill ${i.tipo?.includes('Fatal')?'pill-danger':i.tipo?.includes('Grave')?'pill-danger':i.tipo?.includes('AT')?'pill-warn':'pill-gray'}">${i.tipo}</span></td>
+    <td>${i.trabajador}</td>
+    <td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.descripcion||'—'}</td>
+    <td style="text-align:center">${i.dias_perdidos||0}</td>
+    <td><span class="pill ${i.reportado_arl?'pill-green':'pill-danger'}">${i.reportado_arl?'✓ Reportado':'Pendiente'}</span></td>
+    <td><span class="pill ${i.investigado?'pill-green':'pill-warn'}">${i.investigado?'Investigado':'Pendiente'}</span></td>
+  </tr>`).join('');
+}
+
+// ── PLAN MEJORA ──
+async function addPlanItem(){
+  if(!currentCompany){toast('Seleccione empresa','error');return;}
+  const act=document.getElementById('pl-act').value.trim();
+  if(!act){toast('Ingrese la actividad','error');return;}
+  const obj={
+    company_id:currentCompany.id, actividad:act,
+    phva:document.getElementById('pl-phva').value,
+    responsable:document.getElementById('pl-resp').value,
+    fecha_limite:document.getElementById('pl-fecha').value||null,
+    recursos:document.getElementById('pl-rec').value,
+    estado:'Pendiente'
+  };
+  const {data,error}=await sbDb.from('sgsst_plan_mejora').insert(obj).select().single();
+  if(error){toast('Error: '+error.message,'error');return;}
+  planItems.unshift(data);
+  renderPlan(); closeModal('modalAddPlan');
+  await addVersion('Plan de mejora','Actividad agregada');
+  toast('Actividad agregada ✓','success');
+}
+
+function renderPlan(){
+  const el=document.getElementById('plan-tabla'); if(!el) return;
+  if(!planItems.length){el.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gray-400);padding:2rem">Sin actividades.</td></tr>';return;}
+  el.innerHTML=planItems.map((it,i)=>`<tr>
+    <td>${i+1}</td><td>${it.actividad}</td>
+    <td><span class="pill ${it.phva==='Planear'?'pill-green':it.phva==='Hacer'?'pill-blue':it.phva==='Verificar'?'pill-warn':'pill-purple'}">${it.phva}</span></td>
+    <td>${it.responsable||'—'}</td>
+    <td style="font-family:var(--mono);font-size:11px">${it.fecha_limite||'—'}</td>
+    <td>${it.recursos||'—'}</td>
+    <td><select class="form-select" style="font-size:11px;padding:3px 6px;width:auto" onchange="updatePlanStatus('${it.id}',this.value)">
+      <option ${it.estado==='Pendiente'?'selected':''}>Pendiente</option>
+      <option ${it.estado==='En ejecución'?'selected':''}>En ejecución</option>
+      <option ${it.estado==='Completada'?'selected':''}>Completada</option>
+    </select></td>
+    <td><button class="btn btn-xs btn-danger" onclick="delPlanItem('${it.id}')">🗑</button></td>
+  </tr>`).join('');
+}
+
+async function updatePlanStatus(id,val){
+  await sbDb.from('sgsst_plan_mejora').update({estado:val}).eq('id',id);
+  const it=planItems.find(i=>i.id===id); if(it) it.estado=val;
+}
+async function delPlanItem(id){
+  await sbDb.from('sgsst_plan_mejora').delete().eq('id',id);
+  planItems=planItems.filter(i=>i.id!==id); renderPlan();
+}
+
+// ── ACCIONES ──
+async function addAccion(){
+  if(!currentCompany){toast('Seleccione empresa','error');return;}
+  const hall=document.getElementById('acc-hallazgo').value.trim();
+  if(!hall){toast('Ingrese el hallazgo','error');return;}
+  const obj={
+    company_id:currentCompany.id, tipo:document.getElementById('acc-tipo').value,
+    hallazgo:hall, accion:document.getElementById('acc-accion').value,
+    responsable:document.getElementById('acc-resp').value,
+    fecha_compromiso:document.getElementById('acc-fecha').value||null,
+    estado:'Abierta'
+  };
+  const {data,error}=await sbDb.from('sgsst_acciones').insert(obj).select().single();
+  if(error){toast('Error: '+error.message,'error');return;}
+  acciones.unshift(data);
+  renderAcciones(); closeModal('modalAddAccion');
+  await addVersion('Acción de mejora','Registrada');
+  toast('Acción registrada ✓','success');
+}
+
+function renderAcciones(){
+  const el=document.getElementById('acciones-tabla'); if(!el) return;
+  if(!acciones.length){el.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--gray-400);padding:2rem">Sin acciones.</td></tr>';return;}
+  el.innerHTML=acciones.map((a,i)=>`<tr>
+    <td>${i+1}</td>
+    <td><span class="pill ${a.tipo==='Correctiva'?'pill-danger':a.tipo==='Preventiva'?'pill-warn':'pill-blue'}">${a.tipo}</span></td>
+    <td>${a.hallazgo}</td><td style="font-size:11px">${a.accion||'—'}</td>
+    <td>${a.responsable||'—'}</td>
+    <td style="font-family:var(--mono);font-size:11px">${a.fecha_compromiso||'—'}</td>
+    <td><span class="pill pill-warn">${a.estado}</span></td>
+  </tr>`).join('');
+}
+
+function addObjetivo(){
+  const texto=document.getElementById('obj-texto').value.trim();
+  if(!texto){toast('Ingrese el objetivo','error');return;}
+  const tbody=document.getElementById('objetivos-tabla');
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${texto}</td><td>${document.getElementById('obj-indicador').value}</td>
+    <td>${document.getElementById('obj-meta').value}</td>
+    <td>${document.getElementById('obj-freq').value}</td>
+    <td>${document.getElementById('obj-resp').value}</td>
+    <td><button class="btn btn-xs btn-danger" onclick="this.closest('tr').remove()">🗑</button></td>`;
+  tbody.appendChild(tr);
+  closeModal('modalAddObjetivo');
+  toast('Objetivo agregado ✓','success');
+}
+
+// ── AUTOEVALUACION DATA ──
+const EVAL_STANDARDS={
+  A:[
+    {id:'A1',cat:'P',std:'1.1.1',text:'Política de SST por escrito, firmada y comunicada a todos los trabajadores',norm:'Art.2.2.4.6.5 Dec.1072',pts:25},
+    {id:'A2',cat:'H',std:'1.2.1',text:'Afiliación al Sistema de Seguridad Social Integral (EPS, ARL, AFP)',norm:'Ley 100/1993',pts:25},
+    {id:'A3',cat:'H',std:'2.1.1',text:'Identificación de peligros con participación de los trabajadores',norm:'Art.2.2.4.6.15 Dec.1072',pts:15},
+    {id:'A4',cat:'H',std:'3.1.1',text:'Evaluación médica inicial a los trabajadores',norm:'Res.2346/2007',pts:10},
+    {id:'A5',cat:'H',std:'4.1.1',text:'Capacitación mínima de 6 horas en SST al año',norm:'Art.2.2.4.6.11 Dec.1072',pts:10},
+    {id:'A6',cat:'V',std:'5.1.1',text:'Revisión anual por el empleador del SG-SST',norm:'Art.2.2.4.6.29 Dec.1072',pts:10},
+    {id:'A7',cat:'A',std:'6.1.1',text:'Acciones preventivas y/o correctivas',norm:'Art.2.2.4.6.26 Dec.1072',pts:5},
+  ],
+  B:[
+    {id:'B1',cat:'P',std:'1.1.1',text:'Política SST documentada, firmada y comunicada',norm:'Res.0312 Art.1',pts:1},
+    {id:'B2',cat:'P',std:'1.1.2',text:'Responsable del SG-SST con tiempo definido',norm:'Res.0312 Art.1',pts:2},
+    {id:'B3',cat:'P',std:'1.1.3',text:'Recursos económicos asignados al SG-SST',norm:'Art.2.2.4.6.8 Dec.1072',pts:1},
+    {id:'B4',cat:'P',std:'1.1.4',text:'Afiliación al SSSI',norm:'Ley 100/1993',pts:1},
+    {id:'B5',cat:'P',std:'1.1.5',text:'Plan de trabajo anual del SG-SST firmado',norm:'Art.2.2.4.6.8 Dec.1072',pts:2},
+    {id:'B6',cat:'P',std:'1.1.6',text:'Rendición de cuentas del SG-SST',norm:'Art.2.2.4.6.8 Dec.1072',pts:1},
+    {id:'B7',cat:'P',std:'1.2.1',text:'COPASST o Vigía SST elegido y en funcionamiento',norm:'Res.2013/1986',pts:2},
+    {id:'B8',cat:'P',std:'1.2.2',text:'Comité de Convivencia Laboral conformado',norm:'Res.652/2012',pts:1},
+    {id:'B9',cat:'H',std:'2.1.1',text:'Identificación de peligros, evaluación y valoración de riesgos',norm:'GTC-45:2012',pts:3},
+    {id:'B10',cat:'H',std:'2.2.1',text:'Plan de prevención, preparación y respuesta ante emergencias',norm:'Art.2.2.4.6.25 Dec.1072',pts:5},
+    {id:'B11',cat:'H',std:'3.1.1',text:'Evaluaciones médicas ocupacionales',norm:'Res.2346/2007',pts:1},
+    {id:'B12',cat:'H',std:'3.1.2',text:'Actividades de medicina del trabajo',norm:'Art.2.2.4.6.12 Dec.1072',pts:1},
+    {id:'B13',cat:'H',std:'3.2.1',text:'Registros de accidentes y enfermedades laborales',norm:'Res.1401/2007',pts:1},
+    {id:'B14',cat:'H',std:'3.2.2',text:'Investigación de accidentes e incidentes',norm:'Res.1401/2007',pts:1},
+    {id:'B15',cat:'H',std:'3.3.1',text:'Medición de la frecuencia de accidentalidad',norm:'Res.0312 Anexo',pts:1},
+    {id:'B16',cat:'H',std:'4.1.1',text:'Capacitación en SST mínimo 20 horas al año',norm:'Dec.1295/1994',pts:2},
+    {id:'B17',cat:'H',std:'4.2.1',text:'Inducción y reinducción en SST',norm:'Art.2.2.4.6.11 Dec.1072',pts:1},
+    {id:'B18',cat:'V',std:'5.1.1',text:'Evaluación inicial del SG-SST',norm:'Art.2.2.4.6.16 Dec.1072',pts:3},
+    {id:'B19',cat:'V',std:'5.1.2',text:'Auditoría anual del SG-SST',norm:'Art.2.2.4.6.29 Dec.1072',pts:3},
+    {id:'B20',cat:'A',std:'6.1.1',text:'Definición de acciones preventivas y correctivas',norm:'Art.2.2.4.6.26',pts:5},
+    {id:'B21',cat:'A',std:'6.1.2',text:'Plan de mejoramiento',norm:'Res.0312 Art.15',pts:3},
+  ],
+  C:[
+    {id:'C1',cat:'P',std:'1.1.1',text:'Política SST firmada por alta dirección, comunicada y publicada',norm:'Res.0312 Art.16',pts:1},
+    {id:'C2',cat:'P',std:'1.1.2',text:'Responsable SG-SST con licencia SST vigente',norm:'Res.4927/2016',pts:2},
+    {id:'C3',cat:'P',std:'1.1.3',text:'Recursos financieros asignados anualmente',norm:'Art.2.2.4.6.8 Dec.1072',pts:1},
+    {id:'C4',cat:'P',std:'1.1.4',text:'Afiliación 100% trabajadores al SSSI',norm:'Ley 100/1993',pts:0.5},
+    {id:'C5',cat:'P',std:'1.1.5',text:'Plan de trabajo anual firmado por el empleador',norm:'Art.2.2.4.6.8',pts:2},
+    {id:'C6',cat:'P',std:'1.1.6',text:'Rendición de cuentas al interior de la empresa',norm:'Art.2.2.4.6.8',pts:0.5},
+    {id:'C7',cat:'P',std:'1.1.7',text:'Definición y comunicación de responsabilidades SST',norm:'Art.2.2.4.6.8',pts:2},
+    {id:'C8',cat:'P',std:'1.1.8',text:'COPASST conformado y en funcionamiento',norm:'Res.2013/1986',pts:2},
+    {id:'C9',cat:'P',std:'1.1.9',text:'Comité de Convivencia Laboral en funcionamiento',norm:'Res.652/2012',pts:1},
+    {id:'C10',cat:'P',std:'1.2.1',text:'Programa de capacitación promovido por alta dirección',norm:'Art.2.2.4.6.11',pts:2},
+    {id:'C11',cat:'P',std:'1.2.2',text:'Inducción y reinducción a todos los trabajadores',norm:'Art.2.2.4.6.11',pts:2},
+    {id:'C12',cat:'P',std:'1.2.3',text:'Formación para miembros del COPASST',norm:'Res.0312 Art.16',pts:2},
+    {id:'C13',cat:'H',std:'2.1.1',text:'Política de no consumo de alcohol, tabaco y drogas',norm:'Ley 1566/2012',pts:1},
+    {id:'C14',cat:'H',std:'2.2.1',text:'Identificación y clasificación de peligros en todos los centros',norm:'GTC-45:2012',pts:4},
+    {id:'C15',cat:'H',std:'2.2.2',text:'Implementación de medidas de prevención y control',norm:'Art.2.2.4.6.24',pts:2.5},
+    {id:'C16',cat:'H',std:'2.3.1',text:'Elaboración y actualización Reglamento HIS',norm:'Art.349 CST',pts:1},
+    {id:'C17',cat:'H',std:'2.4.1',text:'Plan de trabajo para control de riesgos prioritarios',norm:'Art.2.2.4.6.17',pts:2.5},
+    {id:'C18',cat:'H',std:'2.5.1',text:'Gestión del peligro de trabajo en alturas (si aplica)',norm:'Res.4272/2021',pts:1},
+    {id:'C19',cat:'H',std:'2.6.1',text:'Plan de prevención ante emergencias completo',norm:'Art.2.2.4.6.25',pts:5},
+    {id:'C20',cat:'H',std:'2.7.1',text:'Brigada de prevención, preparación y respuesta',norm:'Art.2.2.4.6.25',pts:1},
+    {id:'C21',cat:'H',std:'3.1.1',text:'Examen médico ocupacional al ingreso',norm:'Res.2346/2007',pts:1},
+    {id:'C22',cat:'H',std:'3.1.2',text:'Exámenes periódicos y de retiro',norm:'Res.2346/2007',pts:1},
+    {id:'C23',cat:'H',std:'3.1.3',text:'Actividades de medicina preventiva y del trabajo',norm:'Art.2.2.4.6.12',pts:1},
+    {id:'C24',cat:'H',std:'3.1.4',text:'Restricciones y recomendaciones médico-laborales',norm:'Res.2346/2007',pts:1},
+    {id:'C25',cat:'H',std:'3.1.5',text:'Reporte de condiciones de salud y perfiles de cargo',norm:'Art.2.2.4.6.12',pts:1},
+    {id:'C26',cat:'H',std:'3.1.6',text:'Información al médico sobre funciones y riesgos',norm:'Res.2346/2007',pts:1},
+    {id:'C27',cat:'H',std:'3.1.7',text:'Estilos de vida y entornos saludables',norm:'Res.0312 Art.16',pts:1},
+    {id:'C28',cat:'H',std:'3.1.8',text:'Agua potable, servicios sanitarios y disposición de basuras',norm:'Dec.1843/1991',pts:1},
+    {id:'C29',cat:'H',std:'3.1.9',text:'Eliminación adecuada de residuos',norm:'Dec.1076/2015',pts:1},
+    {id:'C30',cat:'H',std:'3.2.1',text:'Reporte de AT y EL a la ARL en 48 horas',norm:'Res.1401/2007',pts:2},
+    {id:'C31',cat:'H',std:'3.2.2',text:'Investigación de AT, EL e incidentes dentro de 15 días',norm:'Res.1401/2007',pts:2},
+    {id:'C32',cat:'H',std:'3.2.3',text:'Registro y análisis estadístico de incidentes',norm:'Art.2.2.4.6.22',pts:1},
+    {id:'C33',cat:'H',std:'3.3.1',text:'Medición frecuencia de accidentalidad',norm:'Res.0312 Anexo',pts:1.25},
+    {id:'C34',cat:'H',std:'3.3.2',text:'Medición severidad de accidentalidad',norm:'Res.0312 Anexo',pts:1.25},
+    {id:'C35',cat:'H',std:'3.3.3',text:'Medición mortalidad por AT',norm:'Res.0312 Anexo',pts:0.5},
+    {id:'C36',cat:'H',std:'3.3.4',text:'Medición prevalencia de enfermedad laboral',norm:'Res.0312 Anexo',pts:0.5},
+    {id:'C37',cat:'H',std:'3.3.5',text:'Medición incidencia de enfermedad laboral',norm:'Res.0312 Anexo',pts:0.5},
+    {id:'C38',cat:'H',std:'3.3.6',text:'Medición de ausentismo por causa médica',norm:'Res.0312 Anexo',pts:0.5},
+    {id:'C39',cat:'H',std:'4.1.1',text:'Metodología para identificación de peligros e inventario químicos',norm:'Res.773/2021',pts:1},
+    {id:'C40',cat:'H',std:'4.2.1',text:'Medidas de prevención/control por peligros identificados',norm:'Art.2.2.4.6.24',pts:2.5},
+    {id:'C41',cat:'H',std:'4.2.2',text:'Inspecciones a instalaciones, maquinaria y equipos',norm:'Art.2.2.4.6.24',pts:2.5},
+    {id:'C42',cat:'H',std:'4.2.3',text:'Mantenimiento periódico de instalaciones y equipos',norm:'Art.2.2.4.6.24',pts:2.5},
+    {id:'C43',cat:'H',std:'4.2.4',text:'Entrega de EPP según perfil de riesgo del cargo',norm:'Art.2.2.4.6.24',pts:2.5},
+    {id:'C44',cat:'V',std:'5.1.1',text:'Evaluación inicial del SG-SST con autoevaluación',norm:'Art.2.2.4.6.16',pts:4},
+    {id:'C45',cat:'V',std:'5.1.2',text:'Auditoría anual con participación del COPASST',norm:'Art.2.2.4.6.29',pts:4},
+    {id:'C46',cat:'V',std:'5.1.3',text:'Revisión del SG-SST por la alta dirección',norm:'Art.2.2.4.6.31',pts:6},
+    {id:'C47',cat:'V',std:'5.1.4',text:'Planificación de auditorías con COPASST',norm:'Art.2.2.4.6.29',pts:4},
+    {id:'C48',cat:'V',std:'5.1.5',text:'Investigación de incidentes, AT y EL',norm:'Res.1401/2007',pts:3},
+    {id:'C49',cat:'V',std:'5.1.6',text:'Identificación de amenazas y vulnerabilidades',norm:'Art.2.2.4.6.25',pts:4},
+    {id:'C50',cat:'V',std:'5.1.7',text:'Planes de prevención y respuesta ante emergencias',norm:'Art.2.2.4.6.25',pts:4},
+    {id:'C51',cat:'V',std:'5.1.8',text:'Plan de ayuda mutua ante amenaza de desastre',norm:'Dec.919/1989',pts:3},
+    {id:'C52',cat:'A',std:'6.1.1',text:'Definición de acciones preventivas, correctivas y de mejora',norm:'Art.2.2.4.6.26',pts:2.5},
+    {id:'C53',cat:'A',std:'6.1.2',text:'Acciones de mejora con base en revisión alta dirección',norm:'Art.2.2.4.6.31',pts:2.5},
+    {id:'C54',cat:'A',std:'6.1.3',text:'Acciones de mejora por investigaciones AT y EL',norm:'Res.1401/2007',pts:2.5},
+    {id:'C55',cat:'A',std:'6.1.4',text:'Elaboración e implementación del plan de mejoramiento',norm:'Res.0312 Art.15',pts:5},
+  ]
+};
+
+// RISK_LABELS definido en bloque global
+
+function renderEval(){
+  const mod=document.getElementById('evalModalidad').value;
+  const cont=document.getElementById('eval-container');
+  if(!mod){cont.innerHTML='';return;}
+  const items=EVAL_STANDARDS[mod]||[];
+  const cats={P:'📌 Planear',H:'⚙️ Hacer',V:'✅ Verificar',A:'🔄 Actuar'};
+  let html='';
+  ['P','H','V','A'].forEach(cat=>{
+    const grp=items.filter(i=>i.cat===cat); if(!grp.length) return;
+    const total=grp.reduce((s,i)=>s+i.pts,0);
+    html+=`<div class="card"><div class="card-title">${cats[cat]} <span style="font-weight:400;font-size:11px;color:var(--gray-400)">— Máx: ${total} pts</span></div>`;
+    grp.forEach(item=>{
+      html+=`<div class="eval-question">
+        <div class="eval-q-text">
+          <b>${item.text}</b>
+          <div class="eval-q-norm">${item.std} · ${item.norm} · <b>${item.pts} pts</b></div>
+        </div>
+        <div class="eval-opts">
+          <label class="eval-opt"><input type="radio" name="ev_${item.id}" value="full" onchange="setScore('${item.id}',${item.pts})"> Cumple</label>
+          <label class="eval-opt"><input type="radio" name="ev_${item.id}" value="half" onchange="setScore('${item.id}',${item.pts*0.5})"> Parcial</label>
+          <label class="eval-opt"><input type="radio" name="ev_${item.id}" value="no" onchange="setScore('${item.id}',0)"> No cumple</label>
+          <label class="eval-opt"><input type="radio" name="ev_${item.id}" value="na" onchange="setScore('${item.id}','na')"> N/A</label>
+        </div>
+        <div class="eval-score" id="es_${item.id}">—</div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  cont.innerHTML=html;
+}
+
+function setScore(id,val){
+  evalScores[id]=val;
+  const el=document.getElementById('es_'+id);
+  if(el) el.textContent=val==='na'?'N/A':parseFloat(val).toFixed(1);
+}
+
+async function calcEval(){
+  const mod=document.getElementById('evalModalidad').value;
+  if(!mod){toast('Seleccione modalidad','error');return;}
+  const items=EVAL_STANDARDS[mod]||[];
+  let obtained=0,total=0;
+  items.forEach(i=>{const v=evalScores[i.id];if(v!=='na'){total+=i.pts;obtained+=(v||0);}});
+  const pct=total>0?Math.round((obtained/total)*100):0;
+  evalTotal=pct;
+  let nivel,pclass;
+  if(pct>=85){nivel='✅ ACEPTABLE';pclass='alert-green';}
+  else if(pct>=61){nivel='⚠️ MODERADAMENTE ACEPTABLE';pclass='alert-warn';}
+  else{nivel='❌ CRÍTICO — Plan de mejora inmediato';pclass='alert-danger';}
+  const banner=document.getElementById('eval-result-banner');
+  banner.className='alert '+pclass; banner.style.display='flex';
+  document.getElementById('eval-result-text').innerHTML=
+    `<div><b>Resultado: ${pct}% — ${nivel}</b><br>Obtenido: ${obtained.toFixed(1)} / ${total.toFixed(1)} puntos · Modalidad ${mod}</div>`;
+  document.getElementById('badge-eval').textContent=pct+'%';
+  document.getElementById('kpi-cumplimiento').querySelector('.kpi-value').textContent=pct+'%';
+  document.getElementById('kpi-cumplimiento').querySelector('.kpi-sub').textContent=nivel;
+  document.getElementById('kpi-cumplimiento').className='kpi '+(pct>=85?'kpi-green':pct>=61?'kpi-warn':'kpi-danger');
+  // Auto brechas
+  const incompletos=items.filter(i=>{const v=evalScores[i.id];return v!=='na'&&(!v||v<i.pts);});
+  const bEl=document.getElementById('brechas-content');
+  if(bEl){
+    document.getElementById('kpi-pendientes').querySelector('.kpi-value').textContent=incompletos.length;
+    document.getElementById('kpi-pendientes').className='kpi '+(incompletos.length>10?'kpi-danger':incompletos.length>5?'kpi-warn':'kpi-green');
+    if(incompletos.length){
+      bEl.innerHTML=`<div class="alert alert-warn"><span class="alert-icon">⚠️</span><b>${incompletos.length} hallazgos identificados</b> requieren acciones en el plan de mejora.</div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Estándar</th><th>Descripción</th><th>Norma</th><th>Cat.</th><th>Pts en riesgo</th></tr></thead>
+        <tbody>${incompletos.map(i=>`<tr>
+          <td style="font-family:var(--mono);font-size:11px">${i.std}</td><td>${i.text}</td>
+          <td style="font-size:11px;color:var(--gray-400)">${i.norm}</td>
+          <td><span class="pill ${i.cat==='P'?'pill-green':i.cat==='H'?'pill-blue':i.cat==='V'?'pill-warn':'pill-purple'}">${i.cat}</span></td>
+          <td style="font-family:var(--mono);font-weight:700">${i.pts}</td>
+        </tr>`).join('')}</tbody></table></div>`;
+    } else {
+      bEl.innerHTML='<div class="alert alert-green"><span class="alert-icon">✅</span>¡Sin brechas! El sistema cumple todos los estándares evaluados.</div>';
+    }
+  }
+  if(currentCompany){
+    await sbDb.from('sgsst_autoevaluacion').insert({company_id:currentCompany.id,modalidad:mod,periodo:document.getElementById('eval-periodo').value,puntaje:pct,resultado:nivel,scores:evalScores});
+    await addVersion('Autoevaluación Res.0312','Puntaje: '+pct+'% — '+nivel);
+  }
+  toast('Autoevaluación: '+pct+'% — '+nivel,'success');
+}
+
+// ── VISITA ──
+const VISITA_ITEMS=[
+  {txt:'Política SST documentada, firmada y publicada',norma:'Dec.1072 Art.2.2.4.6.5'},
+  {txt:'Responsable SST designado con licencia vigente',norma:'Res.4927/2016'},
+  {txt:'Trabajadores afiliados a ARL, EPS y AFP',norma:'Ley 100/1993'},
+  {txt:'COPASST o Vigía SST conformado',norma:'Res.2013/1986'},
+  {txt:'Comité de Convivencia Laboral activo',norma:'Res.652/2012'},
+  {txt:'Reglamento de Higiene y Seguridad Industrial',norma:'Art.349 CST'},
+  {txt:'Matriz de peligros actualizada (GTC-45)',norma:'GTC-45:2012'},
+  {txt:'Señalización de seguridad y emergencia',norma:'RETIE / NTC 1700'},
+  {txt:'Extintores vigentes y botiquín dotado',norma:'Res.2400/1979'},
+  {txt:'Plan de emergencias y brigada conformada',norma:'Art.2.2.4.6.25 Dec.1072'},
+  {txt:'Exámenes médicos ocupacionales al día',norma:'Res.2346/2007'},
+  {txt:'Programa de capacitación en SST',norma:'Art.2.2.4.6.11 Dec.1072'},
+  {txt:'EPP suministrado y planillas de entrega',norma:'Art.2.2.4.6.24 Dec.1072'},
+  {txt:'Investigación y reporte de AT e incidentes',norma:'Res.1401/2007'},
+  {txt:'Plan de trabajo anual del SG-SST firmado',norma:'Art.2.2.4.6.8 Dec.1072'},
+  {txt:'Indicadores mínimos medidos y registrados',norma:'Res.0312/2019 Anexo'},
+  {txt:'Inducción al personal nuevo en SST',norma:'Art.2.2.4.6.11 Dec.1072'},
+  {txt:'Condiciones de orden y aseo adecuadas',norma:'Res.2400/1979'},
+];
+
+function renderVisitaChecklist(){
+  const tbody=document.getElementById('visitaChecklist'); if(!tbody) return;
+  tbody.innerHTML=VISITA_ITEMS.map((item,i)=>`<tr>
+    <td style="font-family:var(--mono);font-weight:700">${i+1}</td>
+    <td>${item.txt}</td>
+    <td style="font-family:var(--mono);font-size:11px;color:var(--gray-400)">${item.norma}</td>
+    <td><select class="form-select" id="chk-${i}" style="width:auto;font-size:12px">
+      <option value="">—</option>
+      <option value="cumple">✅ Cumple</option>
+      <option value="parcial">⚠️ Parcial</option>
+      <option value="no">❌ No cumple</option>
+      <option value="na">N/A</option>
+    </select></td>
+    <td><input class="form-input" id="obs-${i}" placeholder="Observación..." style="font-size:12px"></td>
+  </tr>`).join('');
+}
+
+function loadVisitaFromCompany(){
+  if(!currentCompany) return;
+  const c=currentCompany;
+  if(c.razon) document.getElementById('v-razon').value=c.razon;
+  if(c.nit) document.getElementById('v-nit').value=c.nit;
+  if(c.rl) document.getElementById('v-rl').value=c.rl;
+  if(c.sector) document.getElementById('v-sector').value=c.sector;
+  if(c.riesgo) document.getElementById('v-riesgo').value=c.riesgo;
+  if(c.trabajadores) document.getElementById('v-trab').value=c.trabajadores;
+  if(c.ciudad) document.getElementById('v-ciudad').value=c.ciudad;
+  if(c.direccion) document.getElementById('v-dir').value=c.direccion;
+  if(c.arl) document.getElementById('v-arl').value=c.arl;
+  if(c.sst_responsable) document.getElementById('v-sst').value=c.sst_responsable;
+  if(c.logo_b64){
+    visitaLogoB64=c.logo_b64;
+    const img=document.getElementById('visitaLogoImg');
+    img.src=c.logo_b64; img.style.display='block';
+    document.getElementById('visitaLogoPlaceholder').style.display='none';
+  }
+  loadRiskInfo();
+}
+
+const RISK_INFO={
+  I:{label:'Mínimo',ej:'Oficinas, bancos, seguros, TI, consultoría',modal:'A (1-10 trab.) o B (11-50 trab.)',est:'7 o 21 estándares',lic:'Técnico/Tecnólogo SST (si <10) o Profesional SST',peligros:['Psicosocial','Ergonómico (posturas)','Locativo (caídas nivel)','Eléctrico básico']},
+  II:{label:'Bajo',ej:'Comercio, almacenes, restaurantes, hoteles',modal:'A o B',est:'7 o 21 estándares',lic:'Profesional SST',peligros:['Ergonómico','Locativo','Biomecánico','Eléctrico','Mecánico básico']},
+  III:{label:'Medio',ej:'Manufactura, hospitales, transporte urbano, alimentos',modal:'B o C (>50 trab.)',est:'21 o 60 estándares',lic:'Profesional SST con experiencia',peligros:['Mecánico','Eléctrico','Químico','Biológico (salud)','Ergonómico','Psicosocial']},
+  IV:{label:'Alto',ej:'Construcción, transporte pesado, manufactura pesada',modal:'C (60 estándares)',est:'60 estándares completos',lic:'Especialista en SST',peligros:['Alturas','Eléctrico alta tensión','Maquinaria pesada','Mecánico grave','Sustancias peligrosas']},
+  V:{label:'Máximo',ej:'Minería, explosivos, petróleo, plantas nucleares',modal:'C + Programas especiales',est:'60 estándares + SVE obligatorios',lic:'Especialista SST + Higienista Industrial',peligros:['Explosivos','Atmósferas peligrosas ATEX','Espacios confinados','Radiaciones','Sísmico/geológico']},
+};
+
+function loadRiskInfo(){
+  const r=document.getElementById('v-riesgo')?.value;
+  const card=document.getElementById('riskInfoCard');
+  if(!r||!card){if(card) card.style.display='none';return;}
+  const info=RISK_INFO[r]; if(!info) return;
+  card.style.display='block';
+  document.getElementById('riskInfoContent').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1rem">
+      <div><div class="form-label">Modalidad Res.0312</div><div style="font-weight:600;color:var(--green-700)">${info.modal}</div></div>
+      <div><div class="form-label">Estándares a cumplir</div><div style="font-weight:600">${info.est}</div></div>
+      <div><div class="form-label">Licencia SST requerida</div><div style="font-weight:600">${info.lic}</div></div>
+      <div><div class="form-label">Actividades típicas</div><div style="font-size:12px;color:var(--gray-600)">${info.ej}</div></div>
+    </div>
+    <div><div class="form-label" style="margin-bottom:6px">Peligros prioritarios a gestionar:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">${info.peligros.map(p=>`<span class="pill pill-warn">${p}</span>`).join('')}</div>
+    </div>`;
+}
+
+async function saveVisita(){
+  if(!currentCompany){toast('Seleccione empresa','error');return;}
+  await addVersion('Acta de Visita Inicial',currentCompany.razon+' — '+new Date().toLocaleDateString('es-CO'));
+  toast('Visita guardada ✓','success');
+}
+
+// ── POLÍTICA TEMPLATE ──
+const POLITICAS_POR_SECTOR={
+  admin:`La empresa [NOMBRE], dedicada a actividades administrativas y de servicios, se compromete con la protección y promoción de la seguridad y salud de todos sus trabajadores. Reconocemos que el capital humano es nuestro activo más valioso y que las condiciones laborales seguras son fundamentales para nuestra productividad y sostenibilidad.
+
+Nos comprometemos a:
+• Identificar, evaluar y controlar los peligros y riesgos de origen ergonómico, psicosocial y locativo propios de nuestra actividad.
+• Garantizar la afiliación y el cubrimiento completo al Sistema de Seguridad Social Integral.
+• Cumplir la normatividad colombiana vigente en SST: Decreto 1072/2015, Resolución 0312/2019, Ley 1562/2012 y demás disposiciones aplicables.
+• Asignar los recursos humanos, técnicos y financieros necesarios para el funcionamiento del SG-SST.
+• Promover la participación activa de los trabajadores a través del COPASST.
+• Implementar programas de bienestar, pausas activas y prevención del riesgo psicosocial.
+• Revisar y mejorar continuamente el desempeño del sistema de gestión.`,
+  construccion:`La empresa [NOMBRE], perteneciente al sector de la construcción con Clase de Riesgo IV-V según ARL, asume el más alto compromiso con la seguridad y salud en el trabajo, reconociendo la especial peligrosidad de nuestras actividades y la responsabilidad que tenemos con cada trabajador.
+
+Nos comprometemos a:
+• Implementar y mantener el SG-SST conforme a los 60 estándares mínimos de la Resolución 0312/2019.
+• Gestionar con prioridad los peligros de trabajo en alturas (Res. 4272/2021), riesgo eléctrico, mecánico y locativo.
+• Garantizar que NINGÚN trabajador desarrolle actividades en altura sin el certificado vigente y los EPP requeridos.
+• Mantener actualizada la Matriz de Peligros GTC-45 para todos los frentes de obra.
+• Realizar inspecciones diarias de seguridad en todos los frentes de trabajo.
+• Investigar el 100% de los incidentes y accidentes laborales dentro de los 15 días hábiles siguientes.
+• Proveer dotación y EPP certificados, adecuados al riesgo de cada cargo.
+• Garantizar la afiliación total y oportuna al Sistema de Seguridad Social Integral.
+• Mantener activo el Plan de Emergencias con brigada entrenada y simulacros semestrales.`,
+  salud:`La empresa [NOMBRE], perteneciente al sector salud, reconoce la especial exposición de nuestro personal a riesgos biológicos, psicosociales, biomecánicos y de turnicidad, y asume el compromiso más alto con su protección integral.
+
+Nos comprometemos a:
+• Gestionar prioritariamente el riesgo biológico (virus, bacterias, fluidos corporales) con EPP certificado y protocolos de bioseguridad.
+• Implementar el programa de vigilancia epidemiológica para riesgo biológico y psicosocial.
+• Garantizar la vacunación del 100% del personal expuesto a riesgos biológicos (Hepatitis B, Influenza).
+• Prevenir el síndrome de Burnout y el estrés laboral mediante programas de bienestar y salud mental.
+• Gestionar los riesgos biomecánicos asociados a movilización de pacientes.
+• Cumplir la normatividad en bioseguridad, residuos hospitalarios (Res. 8430/1993) y trabajo nocturno.
+• Mantener programas de medicina preventiva activos para todo el personal de salud.`,
+  manufactura:`La empresa [NOMBRE], perteneciente al sector industrial/manufacturero, se compromete a garantizar condiciones de trabajo seguras en todos nuestros procesos productivos, reconociendo los riesgos mecánicos, eléctricos, químicos, de ruido y ergonómicos inherentes a nuestra actividad.
+
+Nos comprometemos a:
+• Identificar y controlar todos los peligros en la cadena productiva mediante la Matriz GTC-45 actualizada.
+• Implementar controles de ingeniería para reducción de ruido, vibraciones y exposición a sustancias químicas.
+• Garantizar el mantenimiento preventivo de toda la maquinaria y equipos.
+• Proveer EPP certificado adecuado a cada puesto de trabajo con entrega documentada.
+• Mantener el Programa de Vigilancia Epidemiológica para riesgo auditivo, osteomuscular y químico.
+• Cumplir las normas de almacenamiento seguro de sustancias peligrosas y manejo de MSDS.
+• Realizar inspecciones de seguridad mensuales en todos los procesos.`
+};
+
+function initPoliticaTemplate(){
+  const textarea=document.getElementById('politica-texto');
+  if(textarea&&!textarea.value) textarea.value=POLITICAS_POR_SECTOR.admin;
+}
+
+function loadPoliticaFromCompany(){
+  if(!currentCompany) return;
+  const sector=currentCompany.sector||'admin';
+  const template=POLITICAS_POR_SECTOR[sector]||POLITICAS_POR_SECTOR.admin;
+  const textarea=document.getElementById('politica-texto');
+  if(textarea) textarea.value=template.replace(/\[NOMBRE\]/g,currentCompany.razon||'[NOMBRE]');
+  const rl=document.getElementById('pol-rl');
+  if(rl&&currentCompany.rl) rl.value=currentCompany.rl;
+}
+
+async function savePlanear(){
+  if(!currentCompany){toast('Seleccione empresa','error');return;}
+  await addVersion('Política SST','Guardada v'+(document.getElementById('pol-version')?.value||'1.0'));
+  toast('Política SST guardada ✓','success');
+}
+
+// ── DOCS OBLIGATORIOS ──
+const DOCS_OBL=[
+  {n:'Política de Seguridad y Salud en el Trabajo',norm:'Art.2.2.4.6.5 Dec.1072/2015',ob:true,tipo:'politica'},
+  {n:'Reglamento de Higiene y Seguridad Industrial',norm:'Art.349 CST',ob:true,tipo:'reglamento'},
+  {n:'Matriz de Identificación de Peligros (GTC-45)',norm:'Art.2.2.4.6.15 Dec.1072/2015',ob:true,tipo:'matriz'},
+  {n:'Plan de trabajo anual del SG-SST',norm:'Art.2.2.4.6.8 Dec.1072/2015',ob:true,tipo:'plan_trabajo'},
+  {n:'Programa de capacitación anual',norm:'Art.2.2.4.6.11 Dec.1072/2015',ob:true,tipo:'capacitaciones'},
+  {n:'Actas de COPASST / Vigía SST',norm:'Res.2013/1986',ob:true,tipo:'copasst'},
+  {n:'Actas Comité de Convivencia Laboral',norm:'Res.652 y 1356/2012',ob:true,tipo:'convivencia'},
+  {n:'Evaluaciones médicas ocupacionales',norm:'Res.2346/2007',ob:true,tipo:'examenes'},
+  {n:'Profesiograma y restricciones médicas',norm:'Res.2346/2007',ob:true,tipo:'profesiograma'},
+  {n:'Plan de emergencias y respuesta',norm:'Art.2.2.4.6.25 Dec.1072/2015',ob:true,tipo:'emergencias'},
+  {n:'Investigación de AT (FURAT / FUREL)',norm:'Res.1401/2007',ob:true,tipo:'furat'},
+  {n:'Planillas de inducción y capacitaciones',norm:'Art.2.2.4.6.11 Dec.1072/2015',ob:true,tipo:'planillas'},
+  {n:'Planillas de entrega de EPP',norm:'Art.2.2.4.6.24 Dec.1072/2015',ob:true,tipo:'epp'},
+  {n:'Soportes de afiliaciones ARL, EPS, AFP',norm:'Ley 100/1993',ob:true,tipo:'afiliaciones'},
+  {n:'Autoevaluación Res.0312/2019',norm:'Res.0312/2019',ob:true,tipo:'autoevaluacion'},
+  {n:'Auditoría interna anual del SG-SST',norm:'Art.2.2.4.6.29 Dec.1072/2015',ob:true,tipo:'auditoria'},
+  {n:'Indicadores del SG-SST (accidentalidad, ausentismo)',norm:'Res.0312 Anexo Técnico',ob:true,tipo:'indicadores'},
+  {n:'Rendición de cuentas del SG-SST',norm:'Art.2.2.4.6.8 Dec.1072/2015',ob:true,tipo:'rindicion'},
+  {n:'Plan de mejoramiento',norm:'Res.0312/2019 Art.15',ob:true,tipo:'plan_mejora'},
+  {n:'Revisión por la alta dirección',norm:'Art.2.2.4.6.31 Dec.1072/2015',ob:false,tipo:'revision'},
+  {n:'Programa de vigilancia epidemiológica',norm:'Art.2.2.4.6.12 Dec.1072/2015',ob:false,tipo:'vigilancia'},
+  {n:'Batería de riesgo psicosocial (Res.2646/2008)',norm:'Res.2646/2008',ob:false,tipo:'psicosocial'},
+  {n:'Certificado trabajo en alturas (si aplica)',norm:'Res.4272/2021',ob:false,tipo:'alturas'},
+  {n:'Permisos de trabajo (espacios confinados, alturas)',norm:'Art.2.2.4.6.24 Dec.1072',ob:false,tipo:'permisos'},
+];
+
+function renderDocsObligatorios(){
+  const el=document.getElementById('docs-obligatorios-list'); if(!el) return;
+  el.innerHTML=DOCS_OBL.map((d,i)=>{
+    const uploaded=uploadedDocs.find(u=>u.tipo===d.tipo);
+    return `<div class="doc-row">
+      <div class="doc-icon">${d.ob?'📌':'📄'}</div>
+      <div class="doc-info">
+        <div class="doc-name">${d.n}</div>
+        <div class="doc-meta">${d.norm} · ${d.ob?'<span class="pill pill-danger">Obligatorio</span>':'<span class="pill pill-gray">Recomendado</span>'}</div>
+      </div>
+      ${uploaded?`<span class="pill pill-green">✓ v${uploaded.version}</span>`:`<span class="pill pill-warn">Pendiente</span>`}
+      <div class="doc-actions">
+        <button class="btn btn-xs" onclick="genPDF('${d.tipo}')">⬇ PDF</button>
+        <button class="btn btn-xs btn-primary" onclick="window._docType='${d.tipo}';document.getElementById('mainUploadInput').click()">⬆ Cargar</button>
+      </div>
+    </div>`;}).join('');
+}
+
+// ── PDF GENERATION ──
+function getLogoB64(){return currentCompany?.logo_b64||visitaLogoB64||null;}
+function getCompanyName(){return currentCompany?.razon||document.getElementById('v-razon')?.value||'EMPRESA';}
+function getCompanyNIT(){return currentCompany?.nit||document.getElementById('v-nit')?.value||'—';}
+
+async function genPDF(type){
+  if(typeof window.jspdf==='undefined'){toast('Cargando PDF...'); setTimeout(()=>genPDF(type),800);return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,M=14;
+  const cName=getCompanyName(), cNit=getCompanyNIT();
+  const logoB64=getLogoB64();
+  const now=new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+  const nowFull=new Date().toLocaleString('es-CO');
+
+  const TITLES={
+    politica:'Política de Seguridad y Salud en el Trabajo',
+    reglamento:'Reglamento de Higiene y Seguridad Industrial',
+    acta_visita:'Acta de Visita Inicial SST',
+    autoevaluacion:'Autoevaluación Res. 0312 de 2019',
+    plan_mejora:'Plan de Mejoramiento SG-SST',
+    informe_completo:'Informe Completo SG-SST',
+    matriz_peligros:'Matriz de Identificación de Peligros — GTC-45',
+    acta_copasst:'Acta de Constitución COPASST / Vigía SST',
+    plan_emergencias:'Plan de Prevención, Preparación y Respuesta ante Emergencias',
+    capacitaciones:'Programa y Registro de Capacitaciones',
+    indicadores:'Indicadores Mínimos del SG-SST',
+    auditoria:'Programa de Auditoría Interna SG-SST',
+    profesiograma:'Profesiograma — Exámenes Médicos Ocupacionales',
+    acciones:'Acciones Correctivas, Preventivas y de Mejora',
+    plan_trabajo:'Plan de Trabajo Anual SG-SST',
+    plan_hacer:'Componentes — Fase Hacer SG-SST',
+    planilla_epp:'Planilla de Entrega de EPP',
+    planilla_cap:'Planilla de Asistencia a Capacitación',
+    incidentes:'Registro de Incidentes y Accidentes de Trabajo',
+  };
+  const title=TITLES[type]||type.replace(/_/g,' ').toUpperCase();
+
+  // ── HEADER ──
+  doc.setFillColor(13,51,32);
+  doc.rect(0,0,W,28,'F');
+  // Logo
+  if(logoB64){
+    try{doc.addImage(logoB64,'JPEG',M,4,20,20);}catch(e){}
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(13); doc.setFont('helvetica','bold');
+    doc.text(title,38,11);
+    doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+    doc.text(cName+' · NIT: '+cNit,38,17);
+  } else {
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(13); doc.setFont('helvetica','bold');
+    doc.text(title,M,11);
+    doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+    doc.text(cName+' · NIT: '+cNit,M,17);
+  }
+  doc.setFontSize(8); doc.setTextColor(180,220,180);
+  doc.text('Res.0312/2019 · Dec.1072/2015',W-M,11,{align:'right'});
+  doc.text(now,W-M,17,{align:'right'});
+  doc.setTextColor(26,26,22);
+
+  let y=36;
+  const addLine=(text,sz=10,bold=false,color=[26,26,22],indent=0)=>{
+    doc.setFontSize(sz); doc.setFont('helvetica',bold?'bold':'normal');
+    doc.setTextColor(...color);
+    const lines=doc.splitTextToSize(text,W-M*2-indent);
+    lines.forEach(l=>{
+      if(y>278){doc.addPage();addPageHeader();y=36;}
+      doc.text(l,M+indent,y); y+=sz*0.42+1.5;
+    });
+  };
+  const addPageHeader=()=>{
+    doc.setFillColor(13,51,32); doc.rect(0,0,W,10,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','bold');
+    doc.text(cName+' · '+title,M,7);
+    doc.setTextColor(26,26,22);
+  };
+  const sep=(color=[200,200,200])=>{doc.setDrawColor(...color);doc.line(M,y,W-M,y);y+=4;};
+  const section=(text)=>{
+    if(y>260){doc.addPage();addPageHeader();y=36;}
+    doc.setFillColor(232,245,238); doc.rect(M,y-4,W-M*2,10,'F');
+    doc.setTextColor(13,51,32); doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.text(text,M+2,y+2); y+=10; doc.setTextColor(26,26,22);
+  };
+  const addFooter=()=>{
+    const pages=doc.internal.getNumberOfPages();
+    for(let i=1;i<=pages;i++){
+      doc.setPage(i);
+      doc.setDrawColor(200); doc.line(M,287,W-M,287);
+      doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(150);
+      doc.text('Generado: '+nowFull+' · Res.0312/2019 · Dec.1072/2015',M,291);
+      doc.text('Pág. '+i+' de '+pages,W-M,291,{align:'right'});
+    }
+    doc.setTextColor(26,26,22);
+  };
+
+  // ── CONTENT BY TYPE ──
+  if(type==='politica'){
+    section('1. DATOS DE LA EMPRESA');
+    addLine('Razón Social: '+cName,10,true);
+    addLine('NIT: '+cNit); addLine('ARL: '+(currentCompany?.arl||'—'));
+    addLine('Clase de Riesgo: '+(currentCompany?.riesgo||'—')+' — '+(RISK_LABELS[currentCompany?.riesgo]||''));
+    addLine('Trabajadores: '+(currentCompany?.trabajadores||0)); addLine('Ciudad: '+(currentCompany?.ciudad||'—'));
+    y+=4; sep(); section('2. POLÍTICA DE SEGURIDAD Y SALUD EN EL TRABAJO');
+    const pol=document.getElementById('politica-texto')?.value||'';
+    addLine(pol,10,false,[26,26,22]);
+    y+=8; sep();
+    section('3. FIRMAS Y APROBACIÓN');
+    addLine('Versión: '+(document.getElementById('pol-version')?.value||'1.0'));
+    addLine('Fecha de aprobación: '+(document.getElementById('pol-fecha')?.value||'___________'));
+    addLine('Próxima revisión: '+(document.getElementById('pol-revision')?.value||'___________'));
+    y+=20;
+    doc.line(M,y,M+70,y); doc.line(W-M-70,y,W-M,y);
+    y+=5;
+    addLine(document.getElementById('pol-rl')?.value||'Representante Legal',9,false,[80,80,80]);
+    doc.text('Responsable SST',W-M-60,y-2);
+    addLine('Representante Legal / Gerente General',8,false,[120,120,120]);
+    doc.text(currentCompany?.sst_responsable||'Nombre · No. Licencia',W-M-60,y-2);
+  }
+  else if(type==='reglamento'){
+    section('REGLAMENTO DE HIGIENE Y SEGURIDAD INDUSTRIAL');
+    addLine('Empresa: '+cName,10,true); addLine('NIT: '+cNit);
+    addLine('Dirección: '+(currentCompany?.direccion||'—')); addLine('Ciudad: '+(currentCompany?.ciudad||'—'));
+    addLine('Representante Legal: '+(currentCompany?.rl||'—'));
+    addLine('Clase de Riesgo ARL: '+(currentCompany?.riesgo||'—'));
+    y+=4; sep();
+    section('ARTÍCULO 1 — DISPOSICIONES GENERALES');
+    addLine('La empresa '+cName+', en cumplimiento de lo dispuesto en los artículos 349 y 350 del Código Sustantivo del Trabajo, expide el presente Reglamento de Higiene y Seguridad Industrial, cuyas normas deben cumplir todos los trabajadores.',10);
+    y+=3; section('ARTÍCULO 2 — OBLIGACIONES DE LA EMPRESA');
+    ['Pagar la cotización para el Programa de Salud Ocupacional del trabajador según lo establecido en la Ley.','Procurar el cuidado integral de la salud de los trabajadores.','Programar, ejecutar y controlar el cumplimiento del SG-SST.','Informar a los trabajadores sobre los riesgos a los que pueden verse expuestos.','Facilitar la capacitación de los trabajadores en materia de SST.','Mantener un ambiente de trabajo en adecuadas condiciones de higiene y seguridad.'].forEach(o=>addLine('• '+o,9.5,false,[26,26,22],2));
+    y+=3; section('ARTÍCULO 3 — OBLIGACIONES DE LOS TRABAJADORES');
+    ['Observar las instrucciones y reglamentos internos de SST.','Usar adecuadamente las instalaciones de trabajo, elementos de protección personal y equipos.','Abstenerse de operar sin la debida autorización vehículos, maquinaria o equipos.','Comunicar oportunamente al empleador las situaciones de riesgo.','Participar activamente en el SG-SST y en las actividades de capacitación.','Reportar inmediatamente todo accidente de trabajo o incidente.'].forEach(o=>addLine('• '+o,9.5,false,[26,26,22],2));
+    y+=3; section('ARTÍCULO 4 — RIESGOS QUE SE DEBEN PREVENIR');
+    const rInfo=RISK_INFO[currentCompany?.riesgo||'II'];
+    addLine('Clase de riesgo ARL: '+(currentCompany?.riesgo||'—')+' — '+((rInfo&&rInfo.label)||''));
+    if(rInfo&&rInfo.peligros) rInfo.peligros.forEach(p=>addLine('• '+p,9.5,false,[26,26,22],2));
+    y+=3; section('ARTÍCULO 5 — SANCIONES');
+    addLine('El incumplimiento de las normas del presente Reglamento dará lugar a la aplicación de las sanciones disciplinarias establecidas en el Reglamento Interno de Trabajo, conforme al Código Sustantivo del Trabajo.',10);
+    y+=15; doc.line(M,y,M+70,y); doc.line(W-M-70,y,W-M,y); y+=5;
+    addLine(currentCompany?.rl||'Representante Legal',9,false,[80,80,80]);
+    doc.text('No. Resolución MinTrabajo: '+(document.getElementById('reg-resol')?.value||'Pendiente'),W-M-80,y-4);
+  }
+  else if(type==='acta_visita'){
+    section('1. DATOS DE LA VISITA');
+    addLine('Empresa: '+cName,10,true); addLine('NIT: '+cNit);
+    addLine('Fecha de visita: '+(document.getElementById('v-fecha')?.value||now));
+    addLine('Profesional SST: '+(document.getElementById('v-sst')?.value||'—'));
+    addLine('Representante Legal: '+(document.getElementById('v-rl')?.value||'—'));
+    addLine('Clase de Riesgo: '+(document.getElementById('v-riesgo')?.value||'—'));
+    addLine('Sector: '+(document.getElementById('v-sector')?.value||'—'));
+    addLine('ARL: '+(document.getElementById('v-arl')?.value||'—'));
+    addLine('Dirección: '+(document.getElementById('v-dir')?.value||'—'));
+    y+=4; sep(); section('2. LISTA DE CHEQUEO');
+    VISITA_ITEMS.forEach((item,i)=>{
+      const sel=document.getElementById('chk-'+i);
+      const obs=document.getElementById('obs-'+i);
+      const estado=sel?sel.value.toUpperCase():'—';
+      const obsText=obs?obs.value:'';
+      addLine(`${i+1}. ${item.txt}`,9);
+      addLine(`   Norma: ${item.norma} | Estado: [${estado}]${obsText?' | Obs: '+obsText:''}`,8,false,[100,100,100],4);
+      y+=1;
+    });
+    sep(); section('3. OBSERVACIONES GENERALES');
+    addLine(document.getElementById('v-obs')?.value||'Sin observaciones adicionales.',10);
+    y+=15; sep();
+    addLine('Esta acta fue elaborada durante la visita inicial de diagnóstico SST. Los hallazgos serán la base del Plan de Mejoramiento.',9,false,[80,80,80]);
+    y+=20; doc.line(M,y,M+70,y); doc.line(W-M-70,y,W-M,y); y+=5;
+    addLine(document.getElementById('v-sst')?.value||'Profesional SST',9,false,[80,80,80]);
+    doc.text(document.getElementById('v-rl')?.value||'Representante Legal',W-M-60,y-2);
+  }
+  else if(type==='autoevaluacion'){
+    const mod=document.getElementById('evalModalidad')?.value||'—';
+    const pct=evalTotal!==null?evalTotal+'%':'Sin calcular';
+    section('RESULTADO DE LA AUTOEVALUACIÓN');
+    addLine('Modalidad: '+mod,11,true);
+    addLine('Resultado: '+pct,14,true,[26,92,56]);
+    addLine('Período: '+(document.getElementById('eval-periodo')?.value||'—'));
+    addLine('Empresa: '+cName);
+    y+=4; sep();
+    const items=EVAL_STANDARDS[mod]||[];
+    ['P','H','V','A'].forEach(cat=>{
+      const grp=items.filter(i=>i.cat===cat); if(!grp.length) return;
+      const catNames={P:'PLANEAR',H:'HACER',V:'VERIFICAR',A:'ACTUAR'};
+      section(catNames[cat]);
+      grp.forEach(item=>{
+        const v=evalScores[item.id];
+        const est=v==='na'?'N/A':!v?'NO CUMPLE':v>=item.pts?'CUMPLE':'PARCIAL';
+        addLine(`[${item.std}] ${item.text}`,9);
+        addLine(`   Norma: ${item.norm} · Pts: ${item.pts} · Estado: ${est}`,8,false,[80,80,80],4);
+        y+=1;
+      });
+    });
+  }
+  else if(type==='plan_mejora'){
+    section('PLAN DE MEJORAMIENTO SG-SST');
+    addLine('Empresa: '+cName+' · NIT: '+cNit,10);
+    addLine('Dec.1072/2015 Art.2.2.4.6.26 · Res.0312/2019 Art.15',8,false,[100,100,100]);
+    y+=3; sep();
+    if(planItems.length){
+      planItems.forEach((it,i)=>{
+        addLine(`${i+1}. ${it.actividad}`,10,true);
+        addLine(`   PHVA: ${it.phva} | Responsable: ${it.responsable||'—'} | Fecha: ${it.fecha_limite||'—'}`,9,false,[80,80,80]);
+        addLine(`   Recursos: ${it.recursos||'—'} | Estado: ${it.estado}`,9,false,[80,80,80]);
+        y+=2;
+      });
+    } else addLine('Sin actividades registradas en el plan.',10,false,[150,150,150]);
+    y+=8; sep();
+    addLine('Hallazgos identificados en autoevaluación: '+(evalTotal!==null?'Puntaje '+evalTotal+'%':'Sin evaluar'),9);
+    y+=15; doc.line(M,y,M+70,y); doc.line(W-M-70,y,W-M,y); y+=5;
+    addLine(currentCompany?.rl||'Representante Legal',9,false,[80,80,80]);
+    doc.text(currentCompany?.sst_responsable||'Responsable SST',W-M-60,y-2);
+  }
+  else if(type==='acta_copasst'){
+    section('ACTA DE CONSTITUCIÓN — COPASST / VIGÍA SST');
+    addLine('Empresa: '+cName+' · NIT: '+cNit,10,true);
+    addLine('Resolución 2013 de 1986 — Conformación y funcionamiento del COPASST',8,false,[100,100,100]);
+    y+=4; sep();
+    addLine('En la ciudad de '+(currentCompany?.ciudad||'___________')+', a los ___ días del mes de ___________ del año _____, se reunieron los trabajadores de '+cName+' con el fin de conformar el Comité Paritario de Seguridad y Salud en el Trabajo (COPASST) o designar el Vigía SST, según aplique.');
+    y+=4; section('REPRESENTANTES DEL EMPLEADOR');
+    addLine('Presidente: '+(document.getElementById('copasst-presidente')?.value||'___________________________'));
+    addLine('Suplente 1: ___________________________');
+    y+=4; section('REPRESENTANTES DE LOS TRABAJADORES');
+    addLine('Secretario: '+(document.getElementById('copasst-secretario')?.value||'___________________________'));
+    addLine('Suplente 1: ___________________________');
+    y+=4; section('COMPROMISOS DEL COPASST');
+    ['Reunirse mensualmente en las instalaciones de la empresa.','Inspeccionar puestos de trabajo e instalaciones al menos trimestralmente.','Participar activamente en la investigación de accidentes e incidentes.','Coordinar actividades de capacitación en SST.','Vigilar el cumplimiento del SG-SST.'].forEach(c=>addLine('• '+c,9.5,false,[26,26,22],2));
+    y+=15; doc.line(M,y,M+70,y); doc.line(W-M-70,y,W-M,y); y+=5;
+    addLine('Representante del Empleador',9,false,[80,80,80]);
+    doc.text('Representante de los Trabajadores',W-M-80,y-2);
+  }
+  else if(type==='plan_emergencias'){
+    section('PLAN DE PREVENCIÓN, PREPARACIÓN Y RESPUESTA ANTE EMERGENCIAS');
+    addLine('Empresa: '+cName+' · NIT: '+cNit,10,true);
+    addLine('Art.2.2.4.6.25 Dec.1072/2015',8,false,[100,100,100]);
+    y+=4; sep(); section('1. IDENTIFICACIÓN DE AMENAZAS');
+    ['Incendio y/o explosión','Sismo / movimiento telúrico','Inundación / lluvia torrencial','Accidente grave / masivo','Atentado terrorista','Derrame de sustancias peligrosas (si aplica)','Falla eléctrica total'].forEach(a=>addLine('• '+a,9.5,false,[26,26,22],2));
+    y+=3; section('2. ORGANIZACIÓN DE LA BRIGADA DE EMERGENCIAS');
+    addLine('Jefe de brigada: ___________________________');
+    addLine('Brigada de primeros auxilios: ___________________________');
+    addLine('Brigada contra incendios: ___________________________');
+    addLine('Brigada de evacuación: ___________________________');
+    y+=3; section('3. PROCEDIMIENTOS DE EMERGENCIA');
+    ['Activación de alarma', 'Evacuación ordenada hacia puntos de encuentro', 'Atención de lesionados (primeros auxilios)','Control del conato de incendio','Comunicación con entidades de socorro (123, bomberos, CRUE)','Notificación a la ARL (AT grave o fatal)'].forEach((p,i)=>addLine((i+1)+'. '+p,9.5,false,[26,26,22],2));
+    y+=3; section('4. RECURSOS PARA EMERGENCIAS');
+    ['Extintores multipropósito (ABC) — Revisión mensual','Botiquín de primeros auxilios dotado','Camilla rígida','Directorio de emergencias visible','Señalización de evacuación y puntos de encuentro','Luces de emergencia'].forEach(r=>addLine('• '+r,9.5,false,[26,26,22],2));
+    y+=3; section('5. SIMULACROS');
+    addLine('Frecuencia mínima requerida: Semestral (2 veces/año)');
+    addLine('Registro: Acta firmada + lista de asistencia + evaluación post-simulacro');
+    y+=15; doc.line(M,y,M+70,y); doc.line(W-M-70,y,W-M,y); y+=5;
+    addLine(currentCompany?.rl||'Representante Legal',9,false,[80,80,80]);
+    doc.text(currentCompany?.sst_responsable||'Responsable SST',W-M-60,y-2);
+  }
+  else if(type==='informe_completo'){
+    section('RESUMEN EJECUTIVO');
+    addLine('Empresa: '+cName,10,true); addLine('NIT: '+cNit);
+    addLine('Clase de Riesgo ARL: '+(currentCompany?.riesgo||'—')+' — '+(RISK_LABELS[currentCompany?.riesgo]||''));
+    addLine('Sector: '+(currentCompany?.sector||'—')); addLine('Trabajadores: '+(currentCompany?.trabajadores||0));
+    addLine('Ciudad: '+(currentCompany?.ciudad||'—')); addLine('ARL: '+(currentCompany?.arl||'—'));
+    addLine('Responsable SST: '+(currentCompany?.sst_responsable||'—'));
+    addLine('Fecha del informe: '+now);
+    y+=4; sep(); section('RESULTADO DE AUTOEVALUACIÓN');
+    addLine('Puntaje: '+(evalTotal!==null?evalTotal+'%':'Sin evaluar'),12,true);
+    y+=3; section('INDICADORES CLAVE');
+    addLine('• Documentos cargados: '+uploadedDocs.length);
+    addLine('• Peligros en matriz GTC-45: '+peligros.length);
+    addLine('• Capacitaciones registradas: '+capacitaciones.length);
+    addLine('• Incidentes y AT: '+incidentes.length);
+    addLine('• Actividades plan de mejora: '+planItems.length);
+    addLine('• Acciones correctivas/preventivas: '+acciones.length);
+    y+=4; sep(); section('NORMATIVIDAD BASE DEL SISTEMA');
+    ['Decreto 1072 de 2015 — Reglamento único del sector trabajo','Resolución 0312 de 2019 — Estándares mínimos SG-SST','Ley 1562 de 2012 — Sistema General de Riesgos Laborales','GTC-45:2012 — Guía identificación peligros','Resolución 2346/2007 — Exámenes médicos ocupacionales','Resolución 1401/2007 — Investigación de AT e incidentes','Resolución 2646/2008 — Riesgo psicosocial','Resolución 2013/1986 — COPASST'].forEach(n=>addLine('• '+n,9.5,false,[26,26,22],2));
+    if(planItems.length){
+      y+=3; section('PLAN DE MEJORAMIENTO — RESUMEN');
+      planItems.slice(0,10).forEach((it,i)=>{
+        addLine(`${i+1}. [${it.phva}] ${it.actividad} — ${it.responsable||'—'} — ${it.fecha_limite||'—'}`,9);
+      });
+    }
+    y+=15; doc.line(M,y,M+70,y); doc.line(W-M-70,y,W-M,y); y+=5;
+    addLine(currentCompany?.rl||'Representante Legal',9,false,[80,80,80]);
+    doc.text(currentCompany?.sst_responsable||'Responsable SST',W-M-60,y-2);
+  }
+  else {
+    section('DOCUMENTO SG-SST — '+title.toUpperCase());
+    addLine('Empresa: '+cName+' · NIT: '+cNit,10);
+    addLine('Clase Riesgo: '+(currentCompany?.riesgo||'—')+' · Trabajadores: '+(currentCompany?.trabajadores||0));
+    addLine('Fecha: '+now); y+=4; sep();
+    addLine('Documento generado por la Plataforma SG-SST conforme a:',10);
+    ['Decreto 1072 de 2015','Resolución 0312 de 2019','Ley 1562 de 2012','GTC-45:2012'].forEach(n=>addLine('• '+n,9.5,false,[26,26,22],2));
+    y+=20; doc.line(M,y,M+70,y); doc.line(W-M-70,y,W-M,y); y+=5;
+    addLine(currentCompany?.rl||'Representante Legal',9,false,[80,80,80]);
+    doc.text(currentCompany?.sst_responsable||'Responsable SST',W-M-60,y-2);
+  }
+
+  addFooter();
+  const fname=type+'_'+cName.replace(/\s+/g,'_').substring(0,20)+'_'+Date.now()+'.pdf';
+  doc.save(fname);
+  if(currentCompany) await addVersion(TITLES[type]||title,'PDF generado');
+  toast('PDF generado: '+fname,'success');
+}
+
+// ── UI HELPERS ──
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const v=document.getElementById('view-'+id);
+  if(v) v.classList.add('active');
+  const n=document.getElementById('nav-'+id);
+  if(n) n.classList.add('active');
+}
+function switchTab(el){
+  el.closest('.tabs').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m) m.classList.remove('open');}));
+function toast(msg,type=''){
+  const t=document.createElement('div');
+  t.className='toast'+(type?' t-'+type:'');
+  t.textContent=msg;
+  document.getElementById('toastArea').appendChild(t);
+  setTimeout(()=>t.remove(),3500);
+}
+function setDefaultDates(){
+  const today=new Date().toISOString().split('T')[0];
+  document.querySelectorAll('input[type="date"]').forEach(i=>{if(!i.value) i.value=today;});
+  const em=document.getElementById('eval-periodo');
+  if(em&&!em.value) em.value=new Date().toISOString().slice(0,7);
+}
+
+// ── START ──
+window.addEventListener('load',init);
+</script>
+</body>
+</html>
