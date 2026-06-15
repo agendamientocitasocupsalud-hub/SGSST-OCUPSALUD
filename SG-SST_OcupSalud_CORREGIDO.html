@@ -1415,7 +1415,13 @@ async function init() {
     });
     // Cliente secundario con clave legacy para consultas DB
     window.sbDb = supabase.createClient(SUPA_URL, SUPA_KEY_LEGACY, {
-      auth: { persistSession: false }
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+      global: { 
+        headers: { 
+          'apikey': SUPA_KEY_LEGACY,
+          'Authorization': 'Bearer ' + SUPA_KEY_LEGACY
+        } 
+      }
     });
 
     // ── Detectar token/error en la URL (confirmación de email, recuperación de contraseña) ──
@@ -2027,7 +2033,19 @@ async function loadCompanies(){
       o.value=c.id; o.textContent=c.razon;
       sel.appendChild(o);
     });
-  } catch(e){ toast('Error cargando empresas: '+e.message,'error'); }
+  } catch(e){ 
+    console.warn('loadCompanies:', e.message);
+    // Intentar con cliente principal si sbDb falla
+    try {
+      const {data,error2} = await sb.from('sgsst_companies').select('*').order('created_at',{ascending:false});
+      if(!error2) {
+        companies = data||[];
+        const sel = document.getElementById('companySelector');
+        sel.innerHTML='<option value="">— Seleccionar empresa —</option>';
+        companies.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.razon; sel.appendChild(o); });
+      }
+    } catch(e2){ console.warn('loadCompanies fallback:', e2.message); }
+  }
 }
 
 async function selectCompany(id){
@@ -3165,10 +3183,3 @@ function setDefaultDates(){
   document.querySelectorAll('input[type="date"]').forEach(i=>{if(!i.value) i.value=today;});
   const em=document.getElementById('eval-periodo');
   if(em&&!em.value) em.value=new Date().toISOString().slice(0,7);
-}
-
-// ── START ──
-window.addEventListener('load',init);
-</script>
-</body>
-</html>
